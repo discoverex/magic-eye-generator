@@ -142,5 +142,15 @@ class DatasetGenerator:
 
 
 if __name__ == "__main__":
-    generator = DatasetGenerator(num_images_per_asset=300)
+    import sys
+    
+    # 명령행 인자로 개수를 전달받으면 해당 값을 사용하고, 없으면 기본값 300 사용
+    num_images = 300
+    if len(sys.argv) > 1:
+        try:
+            num_images = int(sys.argv[1])
+        except ValueError:
+            print(f"⚠️ 경고: '{sys.argv[1]}'은 올바른 숫자가 아닙니다. 기본값 {num_images}으로 진행합니다.")
+
+    generator = DatasetGenerator(num_images_per_asset=num_images)
     asyncio.run(generator.run())

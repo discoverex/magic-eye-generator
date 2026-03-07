@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 
-def run_script(module_path):
+def run_script(module_path, *args):
     """
     지정한 모듈을 실행합니다.
     프로젝트 루트를 PYTHONPATH에 추가하여 src. 패키지 경로를 인식하게 합니다.
@@ -21,7 +21,9 @@ def run_script(module_path):
     print("-"*40 + "\n")
 
     try:
-        subprocess.run([sys.executable, "-m", f"src.{module_path}"], env=env, check=True)
+        # 모듈 경로와 인자들을 합쳐서 실행 명령 구성
+        cmd = [sys.executable, "-m", f"src.{module_path}"] + list(args)
+        subprocess.run(cmd, env=env, check=True)
     except subprocess.CalledProcessError as e:
         print(f"\n❌ 실행 중 오류가 발생했습니다 (종료 코드: {e.returncode})")
     except KeyboardInterrupt:
@@ -37,24 +39,42 @@ def start_app():
         print("\n" + "="*45)
         print(" 🌀 StereoVision Showdown: AI vs Human")
         print("="*45)
-        print(" 1. 매직아이 데이터셋 생성 (dataset_generator.py)")
-        print(" 2. AI 모델 단계별 학습 (trainer.py)")
-        print(" 3. GCP Storage에 데이터 업로드 (image_uploader.py)")
-        print(" 4. 종료 (Exit)")
+        print(" 1. 매직아이 데이터셋 초기화 (dataset_initializer.py)")
+        print(" 2. 매직아이 데이터셋 생성 (dataset_generator.py)")
+        print(" 3. AI 모델 단계별 학습 (trainer.py)")
+        print(" 4. AI 모델 성능 평가 (model_evaluator.py)")
+        print(" 5. AI 모델 최종 테스트 (model_tester.py)")
+        print(" 6. GCP Storage에 데이터 업로드 (image_uploader.py)")
+        print(" 7. 종료 (Exit)")
         print("-" * 45)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~4): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~7): ").strip()
 
         if choice == "1":
-            print("\n🚀 데이터셋 생성을 시작합니다...")
-            run_script("core.dataset_generator")
+            print("\n🧹 데이터셋 초기화를 시작합니다...")
+            run_script("core.dataset_initializer")
         elif choice == "2":
+            print("\n🚀 데이터셋 생성을 시작합니다...")
+            print("💡 에셋당 생성할 이미지 개수를 입력하세요. (기본값: 300)")
+            count_input = input("👉 입력 (엔터 시 300): ").strip()
+            
+            if count_input == "":
+                run_script("core.dataset_generator")
+            else:
+                run_script("core.dataset_generator", count_input)
+        elif choice == "3":
             print("\n🚀 AI 모델 학습을 시작합니다...")
             run_script("core.trainer")
-        elif choice == "3":
+        elif choice == "4":
+            print("\n📊 AI 모델 평가를 시작합니다...")
+            run_script("core.model_evaluator")
+        elif choice == "5":
+            print("\n🧪 AI 모델 최종 테스트를 시작합니다...")
+            run_script("core.model_tester")
+        elif choice == "6":
             print("\n🚀 GCP Storage 업로드를 시작합니다...")
             run_script("core.image_uploader")
-        elif choice in ["4", "exit", "quit"]:
+        elif choice in ["7", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":

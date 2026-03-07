@@ -25,6 +25,7 @@ dependencies = [
     "torch>=2.5.1",
     "pandas>=3.0.1",
     "scikit-learn>=1.8.0",
+    "matplotlib>=3.10.8",
 ]
 
 [dependency-groups]
