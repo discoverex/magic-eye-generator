@@ -18,6 +18,7 @@ def run_script(module_path, *args):
 
     print("\n" + "-"*40)
     print("💡 실행 중 [Ctrl + C]를 누르면 중단하고 메뉴로 돌아갑니다.")
+    print("💡 파이참 터미널에서 실행중이라면 [Ctrl + F2]를 눌러 중단하세요.")
     print("-"*40 + "\n")
 
     try:
