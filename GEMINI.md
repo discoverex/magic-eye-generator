@@ -30,34 +30,27 @@
 │   .env.example              # 환경 변수 예시 파일
 │   .gitignore
 │   .python-version           # 파이썬 버전 명시
-│   main.py                   # 간단한 실행 스크립트
+│   main.py                   # 애플리케이션 통합 실행기 (Entry Point)
 │   pyproject.toml            # 프로젝트 설정 및 의존성 관리
 │   README.md
 │   uv.lock                   # uv 잠금 파일
 │
+├───datasets/                 # 매직아이 데이터셋 저장 경로
+├───main/                     # 통합 실행기 로직
+│   ├───runner.py             # 메뉴 및 실행 제어 로직
+│   └───__init__.py
+├───models/                   # AI 모델 가중치 및 로컬 캐시
 └───src/                      # 소스 코드 루트
-    │   main.py               # FastAPI 애플리케이션의 메인 진입점
-    │
     ├───config/               # 애플리케이션 설정
     │   └───settings.py
-    │
     ├───consts/               # 상수 정의
-    │   └───magic_eye_assets.py
-    │
-    ├───core/                 # 핵심 로직
-    │   ├───generator.py      # 매직아이 이미지 생성 로직
-    │   └───trainer.py        # 난이도 예측 모델 학습 로직
-    │
-    ├───dtos/                 # 데이터 전송 객체 (Data Transfer Objects)
-    │   └───generated_image.py
-    │
-    ├───services/             # 외부 서비스 연동
-    │   ├───gcp_storage.py
-    │   └───magic_eye_service.py
-    │
+    ├───core/                 # 핵심 로직 (데이터 생성, 모델 학습)
+    │   ├───dataset_generator.py
+    │   └───trainer.py
+    ├───dtos/                 # 데이터 전송 객체
+    ├───services/             # 외부 서비스 연동 (GCS 등)
+    │   └───gcp_storage.py
     └───utils/                # 보조 유틸리티
-        ├───get_diverse_prompts.py
-        └───stereogram.py
 ```
 
 ## 4. 설치 및 실행
@@ -89,9 +82,17 @@
 
 ### 4.2. 실행
 
-이 서비스는 무거운 AI 모델을 다루는 특성 상 로컬 개발 환경 또는 코랩에서 실행 목적으로 개발되었습니다. 특정 실행 파일을 찾아 실행해주시기 바랍니다.
+이 서비스는 통합 실행기(`main.py`)를 통해 모든 주요 기능을 실행할 수 있습니다.
 
-## 5. 개발 지침
+```bash
+# 통합 메뉴 실행
+python main.py
+```
+
+실행 후 콘솔의 안내에 따라 번호를 입력하여 데이터셋 생성, 모델 학습, 또는 GCP 업로드를 수행할 수 있습니다. 
+실행 중 `Ctrl+C`를 누르면 언제든지 메인 메뉴로 돌아올 수 있습니다.
+
+### 5. 개발 지침
 
 - **객체지향 설계 (OOP)**
   - Class 기반 구현: Router와 Service 계층은 함수형이 아닌 클래스 선언을 원칙으로 합니다.
