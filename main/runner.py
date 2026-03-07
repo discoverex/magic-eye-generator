@@ -4,22 +4,24 @@ import sys
 
 def run_script(module_path):
     """
-    지정한 모듈을 PYTHONPATH=src 환경에서 실행합니다.
-    사용자가 Ctrl+C를 누르면 메뉴로 안전하게 복귀합니다.
+    지정한 모듈을 실행합니다.
+    프로젝트 루트를 PYTHONPATH에 추가하여 src. 패키지 경로를 인식하게 합니다.
     """
     env = os.environ.copy()
-    # 프로젝트 루트 기준 src 폴더 경로 설정
     project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    src_dir = os.path.join(project_root, "src")
-    env["PYTHONPATH"] = src_dir
+    
+    # PYTHONPATH에 프로젝트 루트를 추가하여 src.xxx 임포트가 가능하게 함
+    if "PYTHONPATH" in env:
+        env["PYTHONPATH"] = f"{project_root}{os.pathsep}{env['PYTHONPATH']}"
+    else:
+        env["PYTHONPATH"] = project_root
 
     print("\n" + "-"*40)
     print("💡 실행 중 [Ctrl + C]를 누르면 중단하고 메뉴로 돌아갑니다.")
     print("-"*40 + "\n")
 
     try:
-        # subprocess.run은 KeyboardInterrupt를 부모 프로세스로 전달합니다.
-        subprocess.run([sys.executable, "-m", module_path], env=env, check=True)
+        subprocess.run([sys.executable, "-m", f"src.{module_path}"], env=env, check=True)
     except subprocess.CalledProcessError as e:
         print(f"\n❌ 실행 중 오류가 발생했습니다 (종료 코드: {e.returncode})")
     except KeyboardInterrupt:
@@ -37,7 +39,7 @@ def start_app():
         print("="*45)
         print(" 1. 매직아이 데이터셋 생성 (dataset_generator.py)")
         print(" 2. AI 모델 단계별 학습 (trainer.py)")
-        print(" 3. GCP Storage에 데이터 업로드 (gcp_storage.py)")
+        print(" 3. GCP Storage에 데이터 업로드 (image_uploader.py)")
         print(" 4. 종료 (Exit)")
         print("-" * 45)
         
@@ -51,7 +53,7 @@ def start_app():
             run_script("core.trainer")
         elif choice == "3":
             print("\n🚀 GCP Storage 업로드를 시작합니다...")
-            run_script("services.gcp_storage")
+            run_script("core.image_uploader")
         elif choice in ["4", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
