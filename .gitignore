@@ -6,7 +6,9 @@ dist/
 wheels/
 *.egg-info
 
-# Virtual environments
-.venv
+# ML models
+models/
 
+# environments
+.venv
 .env

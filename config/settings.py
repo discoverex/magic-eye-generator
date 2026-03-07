@@ -14,7 +14,7 @@ ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 # 프로젝트 루트
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # GCP
 BUCKET_NAME = os.getenv("BUCKET_NAME")

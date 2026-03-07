@@ -31,12 +31,17 @@ AI Difficulty (10 Levels)
 - Level 8-10 (Expert): 고해상도 시차 분석을 통해 인간보다 빠르게 정답을 맞추는 최적화 모델.
 
 ---
-
 ## 🛠️ Tech StackFrontend
 - React / Next.js (Tailwind CSS)
 - Backend: FastAPI (Model Serving)
 - AI/ML: PyTorch / TensorFlow, OpenCV
 - Dataset: 자체 제작한 SIRDS(Single Image Random Dot Stereograms) 데이터셋
+
+---
+## 📦 Model & Asset Management
+
+- Local Weight Storage: 외부 API 의존성을 줄이고 실행 환경의 일관성을 보장하기 위해 모든 사전 학습 모델(Stable Diffusion, DPT)을 ./models 디렉토리에 로컬 캐싱하여 관리함.
+- Environment Isolation: 네트워크 단절 상황에서도 모델 서빙이 가능하도록 인프라를 설계함.
 
 ---
 ## 🚀 Technical Points (Showcasing)
@@ -89,7 +94,7 @@ AI Difficulty (10 Levels)
 
 ## 설치 및 실행
 
-### 4.1. 설치
+### 설치
 
 이 프로젝트는 `uv`를 사용하여 패키지를 관리합니다.
 
@@ -114,7 +119,7 @@ AI Difficulty (10 Levels)
     ```
     > **참고:** Windows 환경에서는 PyTorch가 CUDA 버전에 맞게 자동으로 설치됩니다 (`pyproject.toml` 설정 참고).
 
-### 4.2. 실행
+### 실행
 
 이 서비스는 무거운 AI 모델을 다루는 특성 상 로컬 개발 환경 또는 코랩에서 실행 목적으로 개발되었습니다.
 특정 실행 파일을 찾아 실행해주시기 바랍니다.

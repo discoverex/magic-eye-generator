@@ -19,10 +19,10 @@ dependencies = [
     "accelerate>=0.26.0",
     "diffusers>=0.26.0",
     "opencv-python>=4.8.0",
-    "torch>=2.1.0,<2.6.0",
     "torchvision>=0.16.0,<0.21.0",
     "transformers>=4.35.0",
     "google-cloud-storage>=2.14.0",
+    "torch>=2.5.1",
 ]
 
 [dependency-groups]
@@ -37,11 +37,6 @@ url = "https://download.pytorch.org/whl/cu121"
 explicit = true
 
 [tool.uv.sources]
-# 윈도우 환경(win32)에서만 pytorch-cuda 인덱스를 사용하도록 지정합니다.
-# 다른 환경에서는 기본 인덱스(PyPI)를 자동으로 사용합니다.
-torch = [
-  { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
-]
 torchvision = [
   { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
 ]
