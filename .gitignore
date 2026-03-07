@@ -9,6 +9,9 @@ wheels/
 # ML models
 models/
 
+# datasets
+datasets/
+
 # environments
 .venv
 .env
