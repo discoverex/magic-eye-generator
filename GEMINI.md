@@ -43,11 +43,10 @@
 └───src/                      # 소스 코드 루트
     ├───config/               # 애플리케이션 설정 (settings.py)
     ├───consts/               # 상수 정의 (에셋 정의 등)
-    ├───core/                 # 핵심 비즈니스 로직 (Class 기반 리팩토링 완료)
+    ├───engines/              # 핵심 실행 엔진
     │   ├───dataset_initializer.py # 데이터셋 폴더 초기화
     │   ├───dataset_generator.py   # 매직아이 대량 생성 (개수 동적 설정)
     │   ├───model_trainer.py       # ResNet-18 기반 AI 모델 단계별 학습 (이전 레벨 가중치 계승)
-    │   ├───model_evaluator.py     # 검증 데이터 기반 모델 성능 평가 및 시각화
     │   ├───model_tester.py        # 테스트 데이터 기반 최종 모델 성능 측정 및 시각화
     │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
@@ -87,8 +86,8 @@ python main.py
 ### 5. 개발 지침
 
 - **객체지향 설계 (OOP)**
-  - Class 기반 구현: `src/core` 및 `src/services` 계층의 모든 핵심 로직은 클래스 기반으로 구현되어 상태와 기능을 캡슐화합니다.
-  - 모듈화: 데이터 로딩(DTO), 외부 서비스(Service), 핵심 로직(Core)을 명확히 분리합니다.
+  - Class 기반 구현: `src/engines` 및 `src/services` 계층의 모든 핵심 로직은 클래스 기반으로 구현되어 상태와 기능을 캡슐화합니다.
+  - 모듈화: 데이터 로딩(DTO), 외부 서비스(Service), 핵심 엔진(Engine)을 명확히 분리합니다.
 - **데이터 무결성**
   - AI 훈련에는 `split='train'` 데이터만 사용하며, 서비스에 사용되는 GCS 업로드 데이터는 `split='test'` 데이터만 선별하여 공정성을 보장합니다.
 - **주석 및 코딩 스타일**

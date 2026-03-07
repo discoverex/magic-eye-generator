@@ -42,42 +42,38 @@ def start_app():
         print(" 1. 매직아이 데이터셋 초기화 (dataset_initializer.py)")
         print(" 2. 매직아이 데이터셋 생성 (dataset_generator.py)")
         print(" 3. AI 모델 단계별 학습 (model_trainer.py)")
-        print(" 4. AI 모델 성능 평가 (model_evaluator.py)")
-        print(" 5. AI 모델 최종 테스트 (model_tester.py)")
-        print(" 6. GCP Storage에 데이터 업로드 (image_uploader.py)")
-        print(" 7. 종료 (Exit)")
+        print(" 4. AI 모델 최종 테스트 (model_tester.py)")
+        print(" 5. GCP Storage에 데이터 업로드 (image_uploader.py)")
+        print(" 6. 종료 (Exit)")
         print("-" * 45)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~7): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~6): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
-            run_script("core.dataset_initializer")
+            run_script("engines.dataset_initializer")
         elif choice == "2":
             print("\n🚀 데이터셋 생성을 시작합니다...")
             print("💡 에셋당 생성할 이미지 개수를 입력하세요. (기본값: 300)")
             count_input = input("👉 입력 (엔터 시 300): ").strip()
             
             if count_input == "":
-                run_script("core.dataset_generator")
+                run_script("engines.dataset_generator")
             else:
-                run_script("core.dataset_generator", count_input)
+                run_script("engines.dataset_generator", count_input)
         elif choice == "3":
             print("\n🚀 AI 모델 학습을 시작합니다...")
-            run_script("core.model_trainer")
+            run_script("engines.model_trainer")
         elif choice == "4":
-            print("\n📊 AI 모델 평가를 시작합니다...")
-            run_script("core.model_evaluator")
-        elif choice == "5":
             print("\n🧪 AI 모델 최종 테스트를 시작합니다...")
-            run_script("core.model_tester")
-        elif choice == "6":
+            run_script("engines.model_tester")
+        elif choice == "5":
             print("\n🚀 GCP Storage 업로드를 시작합니다...")
-            run_script("core.image_uploader")
-        elif choice in ["7", "exit", "quit"]:
+            run_script("engines.image_uploader")
+        elif choice in ["6", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":
             continue
         else:
-            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~4번 중에서 선택해주세요.")
+            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~6번 중에서 선택해주세요.")
