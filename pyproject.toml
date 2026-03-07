@@ -1,7 +1,7 @@
 [project]
-name = "Magic_Eye_Generator"
+name = "StereoVision_Showdown"
 version = "0.1.0"
-description = "Magic Eye Image Generator with adaptive CUDA support. It also includes training features for game difficulty estimation."
+description = "This project is a gamification AI service that builds an AI model that interprets the Magic Eye (SIRDS) image and confronts humans by constructing an intelligence index according to the amount of training data in a step-by-step difficulty."
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [
