@@ -28,9 +28,9 @@ class MagicEyeService:
 
         # 1. Stable Diffusion 로컬 로드/다운로드 (이미지 생성용)
         # cache_dir를 지정하면 해당 폴더에 모델이 저장됩니다.
-        sd_path = os.path.join(self.model_dir, "stable-diffusion-v1-5")
+        sd_path = os.path.join(self.model_dir, "dreamshaper-8")
         self.sd_pipe = StableDiffusionPipeline.from_pretrained(
-            "runwayml/stable-diffusion-v1-5",
+            "Lykon/dreamshaper-8",
             cache_dir=sd_path,
             torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
             local_files_only=os.path.exists(sd_path)  # 파일이 있으면 로컬에서만 가져옴
@@ -59,7 +59,6 @@ class MagicEyeService:
                 except Exception as e: print(f"Delete error: {e}")
 
     async def generate_specific_game(self, asset: dict, base_prompt: str, seed: Optional[int] = None) -> GeneratedImage:
-
         # 시드 설정 (재현성 또는 랜덤성)
         actual_seed = seed if seed is not None else random.randint(0, 1000000)
         generator = torch.Generator(device=self.device).manual_seed(actual_seed)
@@ -68,10 +67,11 @@ class MagicEyeService:
         negative_prompt = "shadows, shading, blurry, soft edges, realistic, photography, complex texture, gradient"
 
         # 3. 이미지 생성 (CPU 환경에서는 이 단계가 가장 오래 걸림)
+        steps = 20 if self.device == "cuda" else 8  # CPU일 때는 스텝을 과감히 줄임
         raw_image = self.sd_pipe(
             prompt=refined_prompt,
             negative_prompt=negative_prompt,
-            num_inference_steps=20,  # CPU 속도를 고려해 단계를 약간 줄임
+            num_inference_steps=steps,
             generator=generator
         ).images[0]
 

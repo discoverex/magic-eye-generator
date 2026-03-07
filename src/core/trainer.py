@@ -1,5 +1,4 @@
 import os
-
 import pandas as pd
 import torch
 import torch.nn as nn
@@ -7,41 +6,39 @@ import torch.optim as optim
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, Subset
 from torchvision import models, transforms
+from typing import List, Dict
 
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 
-MODEL_SAVE_DIR = BASE_DIR / "models" / "players"
-CATEGORIES = [asset["id"] for asset in MAGIC_EYE_ASSETS]
-cat_to_idx = {cat: i for i, cat in enumerate(CATEGORIES)}
-
 
 class MagicEyeDataset(Dataset):
-    def __init__(self, csv_file, root_dir, transform=None):
+    """
+    CSV 메타데이터를 기반으로 매직아이 이미지를 로드하는 데이터셋 클래스
+    """
+    def __init__(self, csv_file: str, root_dir: str, transform=None, cat_to_idx: Dict[str, int] = None):
         self.metadata = pd.read_csv(csv_file)
         self.root_dir = root_dir
         self.transform = transform
+        self.cat_to_idx = cat_to_idx
 
     def __len__(self):
         return len(self.metadata)
 
     def __getitem__(self, idx):
-        # idx가 tensor나 list 형태일 경우를 대비해 정수로 변환
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
         row = self.metadata.iloc[idx]
         img_path = os.path.join(self.root_dir, "datasets", row['problem_path'])
 
-        # 이미지 로드 시 에러 방지 처리
         try:
             image = Image.open(img_path).convert("RGB")
         except Exception as e:
             print(f"❌ 이미지 로드 실패: {img_path} | 에러: {e}")
-            # 대체 이미지(검은 화면 등)를 반환하거나 에러를 던짐
             image = Image.new('RGB', (224, 224), color='black')
 
-        label = cat_to_idx[row['asset_id']]
+        label = self.cat_to_idx[row['asset_id']]
 
         if self.transform:
             image = self.transform(image)
@@ -49,76 +46,113 @@ class MagicEyeDataset(Dataset):
         return image, label
 
 
-def train_one_level(level, data_ratio, batch_size=4, epochs=3):
-    print(f"\n{'=' * 30}")
-    print(f"🚀 AI Player Level {level} 훈련 시작")
-    print(f"📊 데이터 사용 비율: {data_ratio * 100}%")
-    print(f"{'=' * 30}")
+class MagicEyeTrainer:
+    """
+    AI 플레이어의 단계별 학습을 담당하는 클래스
+    """
+    def __init__(self):
+        self.model_save_dir = BASE_DIR / "models" / "players"
+        self.categories = [asset["id"] for asset in MAGIC_EYE_ASSETS]
+        self.cat_to_idx = {cat: i for i, cat in enumerate(self.categories)}
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # 기본 전처리 설정
+        self.transform = transforms.Compose([
+            transforms.Resize((224, 224)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+        ])
 
-    # 데이터 전처리 및 증강 (데이터가 적을수록 증강이 중요함)
-    transform = transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
+        os.makedirs(self.model_save_dir, exist_ok=True)
 
-    # 데이터셋 준비
-    full_dataset = MagicEyeDataset(
-        csv_file=os.path.join(BASE_DIR, "datasets/metadata.csv"),
-        root_dir=BASE_DIR,
-        transform=transform
-    )
+    def _prepare_dataloader(self, data_ratio: float, batch_size: int) -> DataLoader:
+        """
+        데이터 비율에 맞게 샘플링된 DataLoader를 준비합니다.
+        """
+        full_dataset = MagicEyeDataset(
+            csv_file=os.path.join(BASE_DIR, "datasets/metadata.csv"),
+            root_dir=str(BASE_DIR),
+            transform=self.transform,
+            cat_to_idx=self.cat_to_idx
+        )
 
-    # 데이터 비율에 따른 샘플링 (난이도 구현 핵심)
-    num_samples = max(int(len(full_dataset) * data_ratio), 1)
-    indices = torch.randperm(len(full_dataset))[:num_samples]
-    train_subset = Subset(full_dataset, indices)
+        num_samples = max(int(len(full_dataset) * data_ratio), 1)
+        indices = torch.randperm(len(full_dataset))[:num_samples]
+        train_subset = Subset(full_dataset, indices)
 
-    train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
+        return DataLoader(train_subset, batch_size=batch_size, shuffle=True)
 
-    # 모델 설정 (ResNet-18)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-    model.fc = nn.Linear(model.fc.in_features, len(CATEGORIES))
-    model = model.to(device)
+    def _init_model(self) -> nn.Module:
+        """
+        ResNet-18 모델을 초기화합니다.
+        """
+        model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        model.fc = nn.Linear(model.fc.in_features, len(self.categories))
+        return model.to(self.device)
 
-    criterion = nn.CrossEntropyLoss()
-    # CPU 환경에선 batch_size가 작으니 lr=0.001로 변경
-    optimizer = optim.Adam(model.parameters(), lr=0.0001)
+    def train_level(self, level: int, data_ratio: float, batch_size: int = 64, epochs: int = 30):
+        """
+        특정 레벨의 AI를 훈련시킵니다.
+        """
+        print(f"\n{'=' * 40}")
+        print(f"🚀 AI Player Level {level} 훈련 시작 (장치: {self.device})")
+        print(f"📊 데이터 사용 비율: {data_ratio * 100}% | Batch: {batch_size} | Epochs: {epochs}")
+        print(f"{'=' * 40}")
 
-    # 훈련 루프
-    model.train()
-    for epoch in range(epochs):
-        running_loss = 0.0
-        for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)
+        train_loader = self._prepare_dataloader(data_ratio, batch_size)
+        model = self._init_model()
+        
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-            optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+        model.train()
+        for epoch in range(epochs):
+            running_loss = 0.0
+            for images, labels in train_loader:
+                images, labels = images.to(self.device), labels.to(self.device)
 
-            running_loss += loss.item()
+                optimizer.zero_grad()
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
 
-        print(f"Epoch [{epoch + 1}/{epochs}] - Loss: {running_loss / len(train_loader):.4f}")
+                running_loss += loss.item()
 
-    # 모델 저장
-    os.makedirs(MODEL_SAVE_DIR, exist_ok=True)
-    save_path = MODEL_SAVE_DIR / f"ai_lv{level}.pth"
-    torch.save(model.state_dict(), save_path)
-    print(f"✅ Level {level} 훈련 완료 및 저장: {save_path}")
+            avg_loss = running_loss / len(train_loader) if len(train_loader) > 0 else 0
+            print(f"Epoch [{epoch + 1}/{epochs}] - Loss: {avg_loss:.4f}")
+
+        # 모델 저장
+        save_path = self.model_save_dir / f"ai_lv{level}.pth"
+        torch.save(model.state_dict(), save_path)
+        print(f"✅ Level {level} 훈련 완료 및 저장: {save_path}")
+
+    def run_full_training(self):
+        """
+        1부터 10레벨까지 전체 시나리오를 훈련합니다.
+        GPU 사용 가능 여부에 따라 훈련 파라미터를 자동으로 조정합니다.
+        """
+        is_cuda = torch.cuda.is_available()
+
+        params = {
+            'batch_size': 64 if is_cuda else 16,
+            'epochs': 30 if is_cuda else 5
+        }
+
+        device_name = "GPU (CUDA)" if is_cuda else "CPU"
+        print(f"🚀 {device_name} 환경에서 훈련을 시작합니다.")
+
+        for i in range(1, 11):
+            level = i
+            ratio = i / 10
+            try:
+                self.train_level(level, ratio, **params)
+            except Exception as e:
+                print(f"❌ Level {level} 훈련 중 오류 발생: {e}")
 
 
 if __name__ == "__main__":
-    # 포트폴리오용 시나리오: 10가지 레벨의 AI 훈련
-    # 1부터 10까지 반복하며 딕셔너리 생성
-    levels = [{"level": i, "ratio": i / 10} for i in range(1, 11)]
-
-    for lv_cfg in levels:
-        try:
-            # train_one_level(lv_cfg["level"], lv_cfg["ratio"]) # CPU test
-            train_one_level(lv_cfg["level"], lv_cfg["ratio"], batch_size=64, epochs=30) # GPU
-        except Exception as e:
-            print(f"❌ Level {lv_cfg['level']} 훈련 중 오류 발생: {e}")
+    trainer = MagicEyeTrainer()
+    # 전체 훈련 실행
+    trainer.run_full_training()
