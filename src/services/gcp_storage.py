@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from google.cloud import storage
 from tqdm import tqdm
 
-from config.settings import GCP_SERVICE_ACCOUNT_JSON, BUCKET_NAME
+from src.config.settings import GCP_SERVICE_ACCOUNT_JSON, BUCKET_NAME, BASE_DIR
 
 # .env 파일 로드
 load_dotenv()
@@ -28,10 +28,8 @@ async def upload_outputs_to_gcs(bucket_name: str):
 
     bucket = storage_client.bucket(bucket_name)
 
-    # 로컬 소스 디렉토리 (backend/src/outputs)
-    current_file_path = os.path.abspath(__file__)
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(current_file_path)))))
-    source_dir = os.path.join(base_dir, "src", "outputs")
+    # 로컬 소스 디렉토리 (root/datasets)
+    source_dir = os.path.join(BASE_DIR, "datasets")
     print(f"🔍 대상 파일 경로: {source_dir}")
 
     # 3. 업로드 대상 파일 수집

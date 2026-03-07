@@ -6,7 +6,7 @@ from typing import Optional
 
 import torch
 
-from config.settings import BASE_DIR
+from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.dtos.generated_image import GeneratedImage, TargetDetails
 from src.utils.get_diverse_prompts import PromptAgent

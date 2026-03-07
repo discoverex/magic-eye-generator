@@ -4,7 +4,7 @@ import csv
 import random
 from datetime import datetime
 
-from config.settings import BASE_DIR
+from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.magic_eye_service import MagicEyeService
 
@@ -123,4 +123,4 @@ async def generate_magic_eye_dataset(num_images_per_asset: int = 300):
 
 if __name__ == "__main__":
     # 배치 생성 실행 (각 에셋당 300장씩)
-    asyncio.run(generate_magic_eye_dataset(num_images_per_asset=2))
+    asyncio.run(generate_magic_eye_dataset(num_images_per_asset=300))

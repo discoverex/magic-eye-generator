@@ -67,11 +67,11 @@ AI Difficulty (10 Levels)
 │   README.md
 │   uv.lock                   # uv 잠금 파일
 │
-├───config/                   # 애플리케이션 설정
-│   └───settings.py
-│
 └───src/                      # 소스 코드 루트
     │   main.py               # FastAPI 애플리케이션의 메인 진입점
+    │
+    ├───config/               # 애플리케이션 설정
+    │   └───settings.py
     │
     ├───consts/               # 상수 정의
     │   └───magic_eye_assets.py
