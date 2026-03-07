@@ -1,27 +1,61 @@
 [project]
-name = "magic-eye-generator"
+name = "Magic_Eye_Generator"
 version = "0.1.0"
-description = "Add your description here"
+description = "Magic Eye Image Generator with adaptive CUDA support. It also includes training features for game difficulty estimation."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
-    "accelerate>=1.13.0",
-    "diffusers>=0.36.0",
-    "fastapi>=0.135.1",
-    "google-cloud-storage>=3.9.0",
-    "opencv-python>=4.13.0.92",
-    "pillow>=12.1.1",
-    "python-dotenv>=1.2.2",
-    "transformers>=5.3.0",
-    "uvicorn>=0.41.0",
-    "xformers>=0.0.35",
+    "dotenv>=0.9.9",
+    "fastapi>=0.133.1",
+    "fastapi-utils>=0.8.0",
+    "firebase-admin>=7.2.0",
+    "googletrans>=4.0.2",
+    "httpx>=0.28.1",
+    "langchain>=1.2.10",
+    "langchain-openai>=1.1.10",
+    "numpy>=2.0.0",
+    "pillow>=10.0.0",
+    "uvicorn>=0.30.0",
+    "accelerate>=0.26.0",
+    "diffusers>=0.26.0",
+    "opencv-python>=4.8.0",
+    "torch>=2.1.0,<2.6.0",
+    "torchvision>=0.16.0,<0.21.0",
+    "transformers>=4.35.0",
+    "google-cloud-storage>=2.14.0",
 ]
 
+[dependency-groups]
+dev = ["pytest>=8.0.0", "pytest-asyncio>=0.23.0", "ruff>=0.1.0"]
+
+[tool.uv]
+environments = []
+
 [[tool.uv.index]]
-name = "pytorch-cu121"
+name = "pytorch-cuda"
 url = "https://download.pytorch.org/whl/cu121"
-explicit = true  # 중요: 이 인덱스는 지정된 패키지에만 사용하도록 제한함
+explicit = true
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu121" }
-torchvision = { index = "pytorch-cu121" }
+# 윈도우 환경(win32)에서만 pytorch-cuda 인덱스를 사용하도록 지정합니다.
+# 다른 환경에서는 기본 인덱스(PyPI)를 자동으로 사용합니다.
+torch = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cuda", marker = "sys_platform == 'win32'" },
+]
+
+[tool.ruff]
+ignore = ["E501"]
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["src"]
