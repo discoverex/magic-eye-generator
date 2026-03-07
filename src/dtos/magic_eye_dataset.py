@@ -21,7 +21,6 @@ class MagicEyeDataset(Dataset):
 
         # 2. 정답 라벨 (사물 이름)
         label_name = self.metadata.iloc[idx]['display_name']
-        # TODO: label_name을 숫자로 바꾸는 매핑 로직 필요
 
         # 3. 상세 설명 (텍스트 데이터)
         description = self.metadata.iloc[idx]['description']
