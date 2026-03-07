@@ -41,7 +41,7 @@ def start_app():
         print("="*45)
         print(" 1. 매직아이 데이터셋 초기화 (dataset_initializer.py)")
         print(" 2. 매직아이 데이터셋 생성 (dataset_generator.py)")
-        print(" 3. AI 모델 단계별 학습 (trainer.py)")
+        print(" 3. AI 모델 단계별 학습 (model_trainer.py)")
         print(" 4. AI 모델 성능 평가 (model_evaluator.py)")
         print(" 5. AI 모델 최종 테스트 (model_tester.py)")
         print(" 6. GCP Storage에 데이터 업로드 (image_uploader.py)")
@@ -64,7 +64,7 @@ def start_app():
                 run_script("core.dataset_generator", count_input)
         elif choice == "3":
             print("\n🚀 AI 모델 학습을 시작합니다...")
-            run_script("core.trainer")
+            run_script("core.model_trainer")
         elif choice == "4":
             print("\n📊 AI 모델 평가를 시작합니다...")
             run_script("core.model_evaluator")

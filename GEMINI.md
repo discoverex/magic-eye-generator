@@ -46,7 +46,7 @@
     ├───core/                 # 핵심 비즈니스 로직 (Class 기반 리팩토링 완료)
     │   ├───dataset_initializer.py # 데이터셋 폴더 초기화
     │   ├───dataset_generator.py   # 매직아이 대량 생성 (개수 동적 설정)
-    │   ├───trainer.py             # ResNet-18 기반 AI 모델 단계별 학습
+    │   ├───model_trainer.py       # ResNet-18 기반 AI 모델 단계별 학습 (이전 레벨 가중치 계승)
     │   ├───model_evaluator.py     # 검증 데이터 기반 모델 성능 평가 및 시각화
     │   ├───model_tester.py        # 테스트 데이터 기반 최종 모델 성능 측정 및 시각화
     │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
