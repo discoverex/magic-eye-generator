@@ -44,10 +44,11 @@ def start_app():
         print(" 3. AI 모델 단계별 학습 (model_trainer.py)")
         print(" 4. AI 모델 최종 테스트 (model_tester.py)")
         print(" 5. GCP Storage에 데이터 업로드 (image_uploader.py)")
-        print(" 6. 종료 (Exit)")
+        print(" 6. AI 모델 Hugging Face 업로드 (model_uploader.py)")
+        print(" 7. 종료 (Exit)")
         print("-" * 45)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~6): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~7): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
@@ -70,10 +71,13 @@ def start_app():
         elif choice == "5":
             print("\n🚀 GCP Storage 업로드를 시작합니다...")
             run_script("engines.image_uploader")
-        elif choice in ["6", "exit", "quit"]:
+        elif choice == "6":
+            print("\n🚀 Hugging Face 업로드를 시작합니다...")
+            run_script("engines.model_uploader")
+        elif choice in ["7", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":
             continue
         else:
-            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~6번 중에서 선택해주세요.")
+            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~7번 중에서 선택해주세요.")

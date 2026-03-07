@@ -83,6 +83,7 @@ AI Difficulty (10 Levels)
     │   ├───dataset_generator.py   # 매직아이 생성 (동적 개수 설정 가능)
     │   ├───model_trainer.py       # AI 모델 단계별 학습 (이전 레벨 가중치 계승)
     │   ├───model_tester.py        # 모델 최종 테스트 및 시각화
+    │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
     │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
     ├───services/             # 외부 서비스 연동 (GCPStorageService 등)
@@ -121,3 +122,4 @@ python main.py
 3. **AI 모델 학습**: 생성된 데이터를 비율별로 사용하여 10단계 AI를 학습시킵니다.
 4. **AI 모델 최종 테스트**: 테스트(Test) 데이터를 통해 모델의 최종 성능을 측정합니다.
 5. **GCP 업로드**: 서비스에 사용될 테스트 데이터를 GCS에 업로드합니다.
+6. **AI 모델 업로드**: 서비스에 사용될 AI 플레이어 모델을 Hugging Face에 업로드합니다.

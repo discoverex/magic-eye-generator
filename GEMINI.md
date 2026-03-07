@@ -48,9 +48,13 @@
     │   ├───dataset_generator.py   # 매직아이 대량 생성 (개수 동적 설정)
     │   ├───model_trainer.py       # ResNet-18 기반 AI 모델 단계별 학습 (이전 레벨 가중치 계승)
     │   ├───model_tester.py        # 테스트 데이터 기반 최종 모델 성능 측정 및 시각화
+    │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
     │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
-    ├───services/             # 외부 연동 서비스 (GCPStorageService 등)
+    ├───services/             # 외부 연동 서비스
+    │   ├───gcp_storage_service.py # GCP Storage 연동
+    │   ├───hf_storage_service.py  # Hugging Face Hub 연동
+    │   └───magic_eye_service.py   # 매직아이 생성 핵심 서비스
     └───utils/                # 공통 유틸리티 (Stereogram 생성 로직 등)
 ```
 
