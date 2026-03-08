@@ -175,7 +175,7 @@ class MagicEyeTrainer:
             level = i
             ratio = i / 10
             try:
-                self.train_level(level, ratio, batch_size=64, epochs=50, patience=5)
+                self.train_level(level, ratio, batch_size=64, epochs=i*5, patience=5)
             except Exception as e:
                 print(f"❌ 레벨 {level} 훈련 중 오류 발생: {e}")
                 continue
