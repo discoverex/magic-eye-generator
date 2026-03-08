@@ -1,10 +1,12 @@
 import os
+from typing import Dict
+
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torchvision import models, transforms
-from typing import Dict, List
-import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
@@ -76,7 +78,9 @@ class ModelTester:
         total = 0
         
         with torch.no_grad():
-            for images, labels in test_loader:
+            # 테스트 진행바 설정 (leave=False로 테스트 완료 후 바 삭제)
+            test_pbar = tqdm(test_loader, desc=f"레벨 {level} 성능 평가", unit="배치", leave=False)
+            for images, labels in test_pbar:
                 images, labels = images.to(self.device), labels.to(self.device)
                 outputs = model(images)
                 _, predicted = torch.max(outputs.data, 1)
@@ -85,7 +89,7 @@ class ModelTester:
                 correct += (predicted == labels).sum().item()
 
         accuracy = 100 * correct / total if total > 0 else 0
-        print(f"✅ Level {level} 테스트 정확도: {accuracy:.2f}%")
+        tqdm.write(f"✅ Level {level} Test Accuracy: {accuracy:.2f}%")
         return accuracy
 
     def visualize_test_results(self, results: Dict[int, float]):

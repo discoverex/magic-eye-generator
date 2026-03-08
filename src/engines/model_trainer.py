@@ -1,11 +1,12 @@
 import os
+from typing import Optional, Tuple
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, Subset
 from torchvision import models, transforms
-from typing import Optional, Tuple
+from tqdm import tqdm
 
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
@@ -110,14 +111,19 @@ class MagicEyeTrainer:
             # --- 학습 단계 ---
             model.train()
             train_loss = 0.0
-            for images, labels in train_loader:
+            
+            # 학습 진행바 설정 (position=1, leave=False로 에포크마다 갱신)
+            train_pbar = tqdm(train_loader, desc=f"  └ 에포크 {epoch+1} 학습", unit="배치", position=1, leave=False)
+            for images, labels in train_pbar:
                 images, labels = images.to(self.device), labels.to(self.device)
                 optimizer.zero_grad()
                 outputs = model(images)
                 loss = criterion(outputs, labels)
                 loss.backward()
                 optimizer.step()
+                
                 train_loss += loss.item()
+                train_pbar.set_postfix(손실=f"{loss.item():.4f}")
 
             avg_train_loss = train_loss / len(train_loader)
 
@@ -126,8 +132,11 @@ class MagicEyeTrainer:
             val_loss = 0.0
             correct = 0
             total = 0
+            
+            # 검증 진행바 설정 (동일한 position=1 사용으로 학습 바 자리를 대체)
+            val_pbar = tqdm(val_loader, desc=f"  └ 에포크 {epoch+1} 검증", unit="배치", position=1, leave=False)
             with torch.no_grad():
-                for images, labels in val_loader:
+                for images, labels in val_pbar:
                     images, labels = images.to(self.device), labels.to(self.device)
                     outputs = model(images)
                     loss = criterion(outputs, labels)
@@ -136,22 +145,24 @@ class MagicEyeTrainer:
                     _, predicted = torch.max(outputs.data, 1)
                     total += labels.size(0)
                     correct += (predicted == labels).sum().item()
+                    val_pbar.set_postfix(손실=f"{loss.item():.4f}")
 
             avg_val_loss = val_loss / len(val_loader)
             val_acc = 100 * correct / total if total > 0 else 0
 
-            print(f"에포크 [{epoch + 1}/{epochs}] - 훈련 손실: {avg_train_loss:.4f} | 검증 손실: {avg_val_loss:.4f} | 검증 정확도: {val_acc:.2f}%")
+            # 결과 출력을 tqdm.write로 하여 진행바 위치를 깨뜨리지 않음
+            tqdm.write(f"📊 [Epoch {epoch + 1}/{epochs}] Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f} | Val Acc: {val_acc:.2f}%")
 
             # --- 조기 종료 및 최적 모델 저장 ---
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 epochs_no_improve = 0
                 torch.save(model.state_dict(), save_path)
-                print(f"  ✨ 최고 성능 모델 저장됨! (손실: {best_val_loss:.4f})")
+                tqdm.write(f"  ✨ Best Model Saved! (Loss: {best_val_loss:.4f})")
             else:
                 epochs_no_improve += 1
                 if epochs_no_improve >= patience:
-                    print(f"  🛑 조기 종료(Early Stopping) 발생. {patience} 에포크 동안 개선이 없습니다.")
+                    tqdm.write(f"  🛑 Early Stopping triggered after {patience} epochs of no improvement.")
                     break
 
         print(f"✅ 레벨 {level} 훈련 완료. 최적 모델 저장 위치: {save_path}")

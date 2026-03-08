@@ -35,9 +35,17 @@ class MagicEyeService:
             torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
             local_files_only=os.path.exists(sd_path)  # 파일이 있으면 로컬에서만 가져옴
         ).to(self.device)
+        
+        # 하위 tqdm 진행바 비활성화 (상위 진행바에서 한 줄로 통합 관리할 예정)
+        self.sd_pipe.set_progress_bar_config(disable=True)
 
         # 2. Depth Estimation 모델 로드/다운로드 (깊이 맵 추출용)
         depth_path = os.path.join(self.model_dir, "dpt-large")
+        
+        # transformers 로그 레벨 설정 (DPT 관련 경고 억제)
+        from transformers import logging as hf_logging
+        hf_logging.set_verbosity_error()
+
         self.depth_estimator = pipeline(
             "depth-estimation",
             model="Intel/dpt-large",
@@ -58,7 +66,7 @@ class MagicEyeService:
                     elif os.path.isdir(file_path): shutil.rmtree(file_path)
                 except Exception as e: print(f"Delete error: {e}")
 
-    async def generate_specific_game(self, asset: dict, base_prompt: str, seed: Optional[int] = None) -> GeneratedImage:
+    async def generate_specific_game(self, asset: dict, base_prompt: str, seed: Optional[int] = None, step_callback: Optional[callable] = None) -> GeneratedImage:
         # 시드 설정 (재현성 또는 랜덤성)
         actual_seed = seed if seed is not None else random.randint(0, 1000000)
         generator = torch.Generator(device=self.device).manual_seed(actual_seed)
@@ -68,11 +76,20 @@ class MagicEyeService:
 
         # 3. 이미지 생성 (CPU 환경에서는 이 단계가 가장 오래 걸림)
         steps = 20 if self.device == "cuda" else 8  # CPU일 때는 스텝을 과감히 줄임
+        
+        # 최신 diffusers 콜백 사양 (callback_on_step_end)
+        def internal_callback(pipe, step, timestep, callback_kwargs):
+            if step_callback:
+                step_callback(step, steps)
+            return callback_kwargs
+
         raw_image = self.sd_pipe(
             prompt=refined_prompt,
             negative_prompt=negative_prompt,
             num_inference_steps=steps,
-            generator=generator
+            generator=generator,
+            callback_on_step_end=internal_callback,
+            callback_on_step_end_tensor_inputs=["latents"]
         ).images[0]
 
         # 4. Depth Map 추출

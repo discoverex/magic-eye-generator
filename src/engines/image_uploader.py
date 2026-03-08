@@ -1,9 +1,10 @@
 import os
+
 import pandas as pd
 from tqdm import tqdm
 
-from src.services.gcp_storage_service import GCPStorageService
 from src.config.settings import BUCKET_NAME, BASE_DIR
+from src.services.gcp_storage_service import GCPStorageService
 
 
 class ImageUploader:
@@ -76,15 +77,27 @@ class ImageUploader:
         count_uploaded = 0
         count_skipped = 0
 
-        for local_path, remote_path in tqdm(tasks, desc="Uploading Test Data"):
+        # tqdm 진행바 설정
+        progress_bar = tqdm(tasks, desc="테스트 데이터 업로드 중", unit="파일", leave=True)
+
+        for local_path, remote_path in progress_bar:
+            # 현재 파일명을 진행바에 표시
+            file_name = os.path.basename(local_path)
+            progress_bar.set_postfix(file=file_name)
+
             # 1. 원격지 존재 여부 확인
             if self.storage_service.blob_exists(self.bucket_name, remote_path):
                 count_skipped += 1
                 continue
 
-            # 2. 업로드 수행
-            if self.storage_service.upload_file(self.bucket_name, local_path, remote_path):
-                count_uploaded += 1
+            # 2. 업로드 수행 (내부 에러 발생 시 tqdm.write 사용)
+            try:
+                if self.storage_service.upload_file(self.bucket_name, local_path, remote_path):
+                    count_uploaded += 1
+            except Exception as e:
+                progress_bar.write(f"❌ 업로드 중 예상치 못한 에러 ({file_name}): {e}")
+
+        progress_bar.close()
 
         print(f"\n✨ 테스트 데이터 업로드 완료!")
         print(f"✅ 신규 업로드: {count_uploaded}개")

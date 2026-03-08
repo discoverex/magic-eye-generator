@@ -5,6 +5,8 @@ import random
 from datetime import datetime
 from typing import Optional
 
+from tqdm import tqdm
+
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.magic_eye_service import MagicEyeService
@@ -73,9 +75,9 @@ class DatasetGenerator:
 
         total_assets = len(MAGIC_EYE_ASSETS)
         total_expected = total_assets * self.num_images_per_asset
-        completed_count = 0
-
-        print(f"🚀 총 {total_assets}개의 에셋에 대해 각각 {self.num_images_per_asset}장씩 생성을 시작합니다.")
+        
+        # 전체 진행바 설정 (단일 바 통합)
+        main_pbar = tqdm(total=total_expected, desc="생성 준비 중...", unit="장", position=0, leave=True)
 
         for a_idx, asset in enumerate(MAGIC_EYE_ASSETS, 1):
             asset_id = asset['id']
@@ -85,9 +87,10 @@ class DatasetGenerator:
             asset_output_dir = os.path.join(self.dataset_base_dir, asset_id)
             os.makedirs(asset_output_dir, exist_ok=True)
 
-            print(f"\n📦 [{a_idx}/{total_assets}] 카테고리: {asset_display_name} ({asset_id})")
-
             for i in range(self.num_images_per_asset):
+                current_info = f"{asset_display_name} ({i+1}/{self.num_images_per_asset})"
+                main_pbar.set_description(f"{current_info} [대기]")
+
                 prob_filename = f"{asset_id}_{i + 1}_prob.png"
                 ans_filename = f"{asset_id}_{i + 1}_ans.png"
                 prob_path = os.path.join(asset_output_dir, prob_filename)
@@ -95,27 +98,39 @@ class DatasetGenerator:
 
                 # 중복 체크
                 if os.path.exists(prob_path) and os.path.exists(ans_path):
-                    completed_count += 1
+                    main_pbar.update(1)
                     continue
 
-                start_time = datetime.now()
-                print(f"  [Image {i + 1}/{self.num_images_per_asset}] 생성 중...")
-
                 try:
+                    # 미니 바 생성 함수
+                    def get_mini_bar(step, total):
+                        width = 8
+                        filled = int(width * step / total)
+                        return "|" + "█" * filled + " " * (width - filled) + "|"
+
                     # 1. LLM을 통한 다양한 프롬프트 확보
+                    main_pbar.set_description(f"{asset_display_name} ({i+1}) [프롬프트]")
                     llm_prompts = await self.service.prompt_agent.get_diverse_prompts(asset_display_name, count=1)
                     current_prompt = llm_prompts[0] if llm_prompts else asset['prompt']
 
-                    # 2. 이미지 생성 실행
-                    generated_data = await self.service.generate_specific_game(asset, current_prompt)
+                    # 2. 이미지 생성 실행 (미니 바 콜백 적용)
+                    def step_update(step, total_steps):
+                        mbar = get_mini_bar(step + 1, total_steps)
+                        main_pbar.set_description(f"{asset_display_name} ({i+1}) {mbar}")
 
-                    # 3. 파일 저장
+                    generated_data = await self.service.generate_specific_game(
+                        asset, 
+                        current_prompt, 
+                        step_callback=step_update
+                    )
+
+                    # 3. 파일 저장 및 메타데이터 기록
+                    main_pbar.set_description(f"{asset_display_name} ({i+1}) [저장 중]")
                     with open(prob_path, "wb") as f:
                         f.write(generated_data.problem_image)
                     with open(ans_path, "wb") as f:
                         f.write(generated_data.answer_image)
 
-                    # 4. 메타데이터 기록
                     split = self._get_split_type()
                     with open(self.metadata_path, 'a', newline='', encoding='utf-8') as f:
                         writer = csv.writer(f)
@@ -129,16 +144,17 @@ class DatasetGenerator:
                             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         ])
 
-                    duration = (datetime.now() - start_time).seconds
-                    completed_count += 1
-                    progress = (completed_count / total_expected) * 100
-                    print(f"    ✅ 완료! ({duration}s) | 분할: {split.upper()} | 진행률: {progress:.1f}%")
+                    main_pbar.update(1)
 
                 except Exception as e:
-                    print(f"    ❌ {asset_id} 생성 중 오류 발생: {str(e)}")
+                    tqdm.write(f"    ❌ {asset_id} 생성 중 오류 발생: {str(e)}")
                     await asyncio.sleep(2)
-
-        print("\n✨ 데이터셋 구축 완료! 모든 이미지가 'datasets' 폴더에 저장되었습니다.")
+        
+        main_pbar.set_description("생성 완료!")
+        main_pbar.close()
+        # 하단 진행바가 종료된 후 터미널 커서를 정리하기 위해 줄 바꿈 추가
+        print("\n" * 2) 
+        print("✨ 데이터셋 구축 완료! 모든 이미지가 'datasets' 폴더에 저장되었습니다.")
 
 
 if __name__ == "__main__":
