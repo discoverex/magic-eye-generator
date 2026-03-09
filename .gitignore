@@ -15,3 +15,7 @@ datasets/
 # environments
 .venv
 .env
+
+# IDE
+.idea/
+.vscode/
