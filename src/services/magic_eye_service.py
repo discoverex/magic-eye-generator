@@ -1,3 +1,4 @@
+import asyncio
 import io
 import os
 import random
@@ -5,6 +6,7 @@ import shutil
 from typing import Optional
 
 import torch
+from PIL import Image
 from transformers import CLIPImageProcessor
 
 from src.config.settings import BASE_DIR
@@ -72,6 +74,49 @@ class MagicEyeService:
                     elif os.path.isdir(file_path): shutil.rmtree(file_path)
                 except Exception as e: print(f"Delete error: {e}")
 
+    def _gpu_inference_sync(
+            self,
+            base_prompt: str,
+            seed: Optional[int],
+            batch_size: int
+    ) -> list[tuple[Image.Image, Image.Image]]:
+        """동기적으로 실행되는 순수 GPU 추론 로직 (스레드에서 실행됨)"""
+        actual_seed = seed if seed is not None else random.randint(0, 1000000)
+        generator = torch.Generator(device=self.device).manual_seed(actual_seed)
+
+        refined_prompt = f"{base_prompt}, high contrast, solid 3d silhouette, isolated on white background"
+        negative_prompt = "shadows, shading, blurry, soft edges, realistic, photography, complex texture, gradient"
+        steps = 20 if self.device == "cuda" else 8
+
+        # 1. SD 생성
+        outputs = self.sd_pipe(
+            prompt=refined_prompt,
+            negative_prompt=negative_prompt,
+            num_inference_steps=steps,
+            generator=generator,
+            num_images_per_prompt=batch_size,
+        ).images
+
+        # 2. Depth 추출
+        depth_results = self.depth_estimator(outputs)
+        
+        results = []
+        for i in range(len(outputs)):
+            depth_map = depth_results[i]["depth"] if isinstance(depth_results, list) else depth_results["depth"]
+            results.append((outputs[i], depth_map))
+        return results
+
+    async def generate_raw_outputs(
+            self,
+            base_prompt: str,
+            seed: Optional[int] = None,
+            batch_size: int = 1
+    ) -> list[tuple[Image.Image, Image.Image]]:
+        """
+        이벤트 루프를 차단하지 않도록 GPU 추론을 별도 스레드에서 실행합니다.
+        """
+        return await asyncio.to_thread(self._gpu_inference_sync, base_prompt, seed, batch_size)
+
     async def generate_specific_game(
             self, asset: dict,
             base_prompt: str,
@@ -79,47 +124,22 @@ class MagicEyeService:
             step_callback: Optional[callable] = None,
             batch_size: int = 1
     ) -> list[GeneratedImage]:
-        # 시드 설정 (재현성 또는 랜덤성)
-        actual_seed = seed if seed is not None else random.randint(0, 1000000)
-        generator = torch.Generator(device=self.device).manual_seed(actual_seed)
-
-        refined_prompt = f"{base_prompt}, high contrast, solid 3d silhouette, isolated on white background"
-        negative_prompt = "shadows, shading, blurry, soft edges, realistic, photography, complex texture, gradient"
-
-        # 3. 이미지 생성 (CPU 환경에서는 이 단계가 가장 오래 걸림)
-        steps = 20 if self.device == "cuda" else 8  # CPU일 때는 스텝을 과감히 줄임
+        """
+        기존 인터페이스 유지를 위한 래퍼 메서드입니다.
+        내부적으로 GPU 작업과 CPU 작업을 순차적으로 수행합니다.
+        """
+        raw_outputs = await self.generate_raw_outputs(base_prompt, seed, batch_size)
         
-        # 최신 diffusers 콜백 사양 (callback_on_step_end)
-        def internal_callback(pipe, step, timestep, callback_kwargs):
-            if step_callback:
-                step_callback(step, steps)
-            return callback_kwargs
-
-        outputs = self.sd_pipe(
-            prompt=refined_prompt,
-            negative_prompt=negative_prompt,
-            num_inference_steps=steps,
-            generator=generator,
-            num_images_per_prompt=batch_size,  # 👈 여기가 배치의 핵심!
-            callback_on_step_end=internal_callback,
-            callback_on_step_end_tensor_inputs=["latents"]
-        ).images
-
-        results = []
-        for raw_image in outputs:
-            # 4. Depth Map 추출 (이미지별로 수행)
-            depth_result = self.depth_estimator(raw_image)
-            depth_map = depth_result["depth"]
-
-            # 5. 매직아이 합성
+        final_results = []
+        for raw_image, depth_map in raw_outputs:
+            # 매직아이 합성 및 인코딩 (CPU)
             magic_eye_img = create_stereogram(depth_map)
-
-            # 6. 결과물 인코딩
+            
             prob_io, ans_io = io.BytesIO(), io.BytesIO()
             magic_eye_img.save(prob_io, format='PNG')
             depth_map.save(ans_io, format='PNG')
 
-            results.append(GeneratedImage(
+            final_results.append(GeneratedImage(
                 problem_image=prob_io.getvalue(),
                 answer_image=ans_io.getvalue(),
                 target_info=TargetDetails(
@@ -128,5 +148,4 @@ class MagicEyeService:
                     keywords=asset['keywords'],
                 )
             ))
-
-        return results
+        return final_results
