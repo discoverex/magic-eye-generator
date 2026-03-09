@@ -51,42 +51,45 @@ class DatasetGenerator:
         return 'test'
 
     async def _generate_task(self, asset: dict, index: int, pbar: tqdm):
-        """
-        단일 이미지 생성 태스크: 세마포어를 통해 GPU 접근을 제어합니다.
-        """
         asset_id = asset['id']
         asset_display_name = asset['display_name']
 
         asset_output_dir = os.path.join(self.dataset_base_dir, asset_id)
+        # 💡 주의: 배치 사이즈가 1보다 크면 파일명 규칙을 변경해야 할 수도 있습니다.
+        # 여기서는 현재 구조를 유지하면서 리스트의 첫 번째 결과만 저장하는 방식으로 수정합니다.
         prob_path = os.path.join(asset_output_dir, f"{asset_id}_{index}_prob.png")
         ans_path = os.path.join(asset_output_dir, f"{asset_id}_{index}_ans.png")
 
-        # 이미 존재하는 파일 스킵
         if os.path.exists(prob_path) and os.path.exists(ans_path):
             pbar.update(1)
             return
 
-        # 💡 GPU 자원 획득 대기
         async with self.semaphore:
             try:
-                # 1. 프롬프트 생성 (이 단계는 GPU를 덜 쓰므로 세마포어 밖으로 빼도 됩니다)
                 llm_prompts = await self.service.prompt_agent.get_diverse_prompts(asset_display_name, count=1)
                 current_prompt = llm_prompts[0] if llm_prompts else asset['prompt']
 
-                # 2. 이미지 생성
-                # 세마포어 안에서 실행되어 한 번에 설정된 개수만큼만 GPU를 점유합니다.
-                generated_data = await self.service.generate_specific_game(
+                # 💡 서비스 호출 (이제 결과가 리스트로 옵니다)
+                generated_results = await self.service.generate_specific_game(
                     asset,
                     current_prompt,
-                    step_callback=None  # 비동기 배치에서는 콜백 출력이 겹치므로 비활성
+                    step_callback=None,
+                    batch_size=8  # Out of Memory 나기 직전까지 두배씩 올려보기
                 )
 
-                # 3. 파일 저장 및 메타데이터 기록 (I/O)
+                # 💡 리스트에서 첫 번째 결과물을 꺼내서 처리
+                if not generated_results:
+                    raise Exception("생성된 이미지가 없습니다.")
+
+                generated_data = generated_results[0]
+
+                # 파일 저장
                 with open(prob_path, "wb") as f:
                     f.write(generated_data.problem_image)
                 with open(ans_path, "wb") as f:
                     f.write(generated_data.answer_image)
 
+                # 메타데이터 기록
                 split = self._get_split_type()
                 with open(self.metadata_path, 'a', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
