@@ -67,7 +67,7 @@ AI Difficulty (10 Levels)
 ├───evaluate_results/         # 모델 검증 성능 시각화 결과 저장
 ├───test_results/             # 모델 최종 테스트 시각화 결과 저장
 ├───main/                     # 통합 실행기 로직
-│   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 10개 옵션 제공)
+│   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 9개 옵션 제공)
 │   └───__init__.py
 ├───models/                   # AI 모델 가중치 및 로컬 캐시
 │   ├───players/              # 학습된 AI 플레이어 모델 (.pth)

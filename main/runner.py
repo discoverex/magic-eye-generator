@@ -52,12 +52,11 @@ def start_app():
         print(" 7. 데이터셋 분배 현황 확인 (dataset_stats.py)")
         print(" 8. 데이터셋 split 리밸런싱 (rebalance_dataset_split.py)")
         print("    💡 잘못된 split 비율을 8:1:1로 강제 재조정합니다.")
-        print(" 9. 테스트 결과(로그/이미지) GCS 업로드 (test_result_uploader.py)")
         print("-" * 50)
-        print(" 10. 종료 (Exit)")
+        print(" 9. 종료 (Exit)")
         print("-" * 50)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~10): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~9): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
@@ -89,13 +88,10 @@ def start_app():
         elif choice == "8":
             print("\n🔄 데이터셋 리밸런싱을 시작합니다...")
             run_script("utils.rebalance_dataset_split")
-        elif choice == "9":
-            print("\n🚀 테스트 결과(로그/이미지) 업로드를 시작합니다...")
-            run_script("utils.test_result_uploader")
-        elif choice in ["10", "exit", "quit"]:
+        elif choice in ["9", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":
             continue
         else:
-            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~10번 중에서 선택해주세요.")
+            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~9번 중에서 선택해주세요.")
