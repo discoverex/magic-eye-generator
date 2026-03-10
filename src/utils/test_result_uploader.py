@@ -1,5 +1,5 @@
 import os
-from src.config.settings import BASE_DIR
+from src.config.settings import BASE_DIR, BUCKET_NAME
 from src.services.gcp_storage_service import GCPStorageService
 
 def upload_test_results():
@@ -26,7 +26,7 @@ def upload_test_results():
         # GCS 내 저장 경로: test_results/파일명
         blob_name = f"test_results/{filename}"
         
-        if storage_service.upload_file(local_path, blob_name):
+        if storage_service.upload_file(BUCKET_NAME, local_path, blob_name):
             print(f"  ✅ 업로드 성공: {filename}")
             success_count += 1
         else:
