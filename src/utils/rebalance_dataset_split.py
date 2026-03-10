@@ -5,6 +5,7 @@ from collections import defaultdict
 
 from src.config.settings import BASE_DIR
 from src.utils.dataset_stats import print_and_visualize_stats, print_and_visualize_asset_stats
+from src.utils.split_helper import get_split_name
 
 
 def rebalance_dataset_split(metadata_path: str, train_ratio=0.8, val_ratio=0.1):
@@ -33,16 +34,8 @@ def rebalance_dataset_split(metadata_path: str, train_ratio=0.8, val_ratio=0.1):
         random.shuffle(group)  # 💡 순서 편향 제거
 
         total = len(group)
-        train_end = int(total * train_ratio)
-        val_end = train_end + int(total * val_ratio)
-
         for i, row in enumerate(group):
-            if i < train_end:
-                row['split'] = 'train'
-            elif i < val_end:
-                row['split'] = 'val'
-            else:
-                row['split'] = 'test'
+            row['split'] = get_split_name(i, total, train_ratio, val_ratio)
             final_rows.append(row)
 
     # 4. 결과 저장

@@ -16,6 +16,7 @@ from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.magic_eye_service import MagicEyeService
 from src.utils.stereogram import create_stereogram
+from src.utils.split_helper import get_split_from_index
 
 
 def _cpu_worker_process(input_queue: multiprocessing.Queue, result_queue: multiprocessing.Queue):
@@ -86,6 +87,8 @@ class DatasetGenerator:
                 if result is None: break
                 
                 asset, idx, prompt, prob_path, ans_path = result
+                split = get_split_from_index(idx, self.num_images_per_asset)
+                
                 async with self.file_lock:
                     with open(self.metadata_path, 'a', newline='', encoding='utf-8') as f:
                         writer = csv.writer(f)
@@ -93,7 +96,7 @@ class DatasetGenerator:
                             asset['id'], asset['display_name'], prompt,
                             os.path.relpath(prob_path, self.dataset_base_dir),
                             os.path.relpath(ans_path, self.dataset_base_dir),
-                            'train', datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            split, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         ])
                 pbar.update(1)
             except:
