@@ -36,7 +36,7 @@
 ├───evaluate_results/         # 모델 검증용 성능 시각화 리포트 (.png)
 ├───test_results/             # 모델 최종 테스트용 성능 시각화 리포트 (.png)
 ├───main/                     # 통합 실행기 로직
-│   ├───runner.py             # 메뉴 및 실행 제어 (총 7개 시나리오 지원)
+│   ├───runner.py             # 메뉴 및 실행 제어 (총 9개 시나리오 지원)
 │   └───__init__.py
 ├───models/                   # AI 모델 가중치 및 로컬 캐시
 │   └───players/              # 단계별 학습된 AI 모델 (.pth)
@@ -45,9 +45,9 @@
     ├───consts/               # 상수 정의 (에셋 정의 등)
     ├───engines/              # 핵심 실행 엔진
     │   ├───dataset_initializer.py # 데이터셋 폴더 초기화
-    │   ├───dataset_generator.py   # 매직아이 대량 생성 (개수 동적 설정)
-    │   ├───model_trainer.py       # ResNet-18 기반 AI 모델 단계별 학습 (이전 레벨 가중치 계승)
-    │   ├───model_tester.py        # 테스트 데이터 기반 최종 모델 성능 측정 및 시각화
+    │   ├───dataset_generator.py   # 매직아이 대량 생성 (8:1:1 split 자동 할당)
+    │   ├───model_trainer.py       # GPU 최적화 기반 AI 모델 단계별 학습
+    │   ├───model_tester.py        # GPU 최적화 기반 최종 모델 성능 측정 및 시각화
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
     │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
@@ -55,7 +55,11 @@
     │   ├───gcp_storage_service.py # GCP Storage 연동
     │   ├───hf_storage_service.py  # Hugging Face Hub 연동
     │   └───magic_eye_service.py   # 매직아이 생성 핵심 서비스
-    └───utils/                # 공통 유틸리티 (Stereogram 생성 로직 등)
+    └───utils/                # 공통 유틸리티
+        ├───dataset_stats.py       # 데이터셋 분배 통계 및 시각화
+        ├───rebalance_dataset_split.py # 데이터셋 split 리밸런싱 (8:1:1)
+        ├───split_helper.py        # 공통 split 결정 로직
+        └───stereogram.py          # 매직아이 생성 핵심 알고리즘
 ```
 
 ## 4. 설치 및 실행
@@ -85,15 +89,18 @@
 python main.py
 ```
 
-실행 후 콘솔의 안내에 따라 1~7번 번호를 입력하여 데이터셋 초기화, 생성, 모델 학습, 평가, 테스트 또는 GCP 업로드를 수행할 수 있습니다.
+실행 후 콘솔의 안내에 따라 1~9번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
 
 ### 5. 개발 지침
 
 - **객체지향 설계 (OOP)**
   - Class 기반 구현: `src/engines` 및 `src/services` 계층의 모든 핵심 로직은 클래스 기반으로 구현되어 상태와 기능을 캡슐화합니다.
   - 모듈화: 데이터 로딩(DTO), 외부 서비스(Service), 핵심 엔진(Engine)을 명확히 분리합니다.
-- **데이터 무결성**
-  - AI 훈련에는 `split='train'` 데이터만 사용하며, 서비스에 사용되는 GCS 업로드 데이터는 `split='test'` 데이터만 선별하여 공정성을 보장합니다.
+- **데이터 무결성 및 밸런싱**
+  - **8:1:1 원칙**: 모든 데이터셋은 `train:val:test = 8:1:1` 비율을 엄격히 준수해야 하며, `src/utils/split_helper.py`를 통해 일관되게 관리합니다.
+  - 리밸런싱: 생성 과정에서 비율이 깨진 경우 `rebalance_dataset_split.py`를 통해 즉시 교정합니다.
+- **GPU 성능 최적화**
+  - 학습(`model_trainer.py`) 및 테스트(`model_tester.py`) 시 **AMP(혼합 정밀도)**와 **DataLoader 병렬화**(num_workers, pin_memory)를 필수 적용하여 실행 속도를 극대화합니다.
 - **주석 및 코딩 스타일**
   - 주석은 **한국어**로 작성하는 것을 원칙으로 합니다.
   - `Ruff`를 사용하여 코드 스타일을 유지합니다.

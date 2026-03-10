@@ -47,9 +47,10 @@ AI Difficulty (10 Levels)
 
 ---
 ## 🚀 Technical Points (Showcasing)
-- Data Engineering: Depth Map과 Random Dot Pattern을 결합한 매직아이 자동 생성 파이프라인 구축.
+- Data Engineering: Depth Map과 Random Dot Pattern을 결합한 매직아이 자동 생성 파이프라인 구축 및 **8:1:1 자동 분배 시스템** 구현.
 - Model Versioning: 파인튜닝 단계별 가중치(Weights) 관리 및 API 서빙 최적화.
-- Performance Visualization: 모델별 검증(Val) 및 테스트(Test) 결과를 그래프로 시각화하여 성능 추이 관리.
+- Performance Optimization: **AMP(혼합 정밀도)** 학습 및 **GPU 병렬 데이터 로딩**을 통해 훈련 및 테스트 속도를 대폭 향상.
+- Visualization: 데이터셋 분배 현황 및 모델 성능 추이를 그래프로 시각화하여 데이터 무결성 상시 점검.
 
 ---
 
@@ -57,9 +58,6 @@ AI Difficulty (10 Levels)
 
 ```
 .
-│   .env.example              # 환경 변수 예시 파일
-│   .gitignore
-│   .python-version           # 파이썬 버전 명시
 │   main.py                   # 애플리케이션 통합 실행기 (Entry Point)
 │   pyproject.toml            # 프로젝트 설정 및 의존성 관리
 │   README.md
@@ -69,25 +67,26 @@ AI Difficulty (10 Levels)
 ├───evaluate_results/         # 모델 검증 성능 시각화 결과 저장
 ├───test_results/             # 모델 최종 테스트 시각화 결과 저장
 ├───main/                     # 통합 실행기 로직
-│   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 7개 옵션 제공)
+│   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 9개 옵션 제공)
 │   └───__init__.py
 ├───models/                   # AI 모델 가중치 및 로컬 캐시
 │   ├───players/              # 학습된 AI 플레이어 모델 (.pth)
-│   ├───dpt-large/            # Depth Estimation 모델
-│   └───stable-diffusion-v1-5 # 이미지 생성 모델
 └───src/                      # 소스 코드 루트
     ├───config/               # 애플리케이션 설정
     ├───consts/               # 상수 및 에셋 정의
     ├───engines/              # 핵심 엔진
     │   ├───dataset_initializer.py # 데이터셋 초기화
-    │   ├───dataset_generator.py   # 매직아이 생성 (동적 개수 설정 가능)
-    │   ├───model_trainer.py       # AI 모델 단계별 학습 (이전 레벨 가중치 계승)
-    │   ├───model_tester.py        # 모델 최종 테스트 및 시각화
+    │   ├───dataset_generator.py   # 매직아이 생성 (8:1:1 자동 할당)
+    │   ├───model_trainer.py       # GPU 가속 기반 AI 모델 학습
+    │   ├───model_tester.py        # GPU 가속 기반 모델 성능 측정
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
-    │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
-    ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
-    ├───services/             # 외부 서비스 연동 (GCPStorageService 등)
-    └───utils/                # 보조 유틸리티 (Stereogram 생성 로직 등)
+    │   └───image_uploader.py      # GCS 업로드
+    ├───dtos/                 # 데이터 전송 객체
+    ├───services/             # 외부 서비스 연동
+    └───utils/                # 보조 유틸리티
+        ├───dataset_stats.py       # 데이터셋 통계 및 시각화
+        ├───rebalance_dataset_split.py # 데이터셋 리밸런싱
+        └───split_helper.py        # 공통 split 결정 로직
 ```
 
 ## 설치 및 실행
@@ -115,11 +114,13 @@ AI Difficulty (10 Levels)
 ```bash
 python main.py
 ```
-
 **제공 기능:**
 1. **데이터셋 초기화**: 기존 생성된 모든 데이터를 삭제합니다.
-2. **데이터셋 생성**: 에셋별 생성 개수를 지정하여 매직아이를 대량 생성합니다.
-3. **AI 모델 학습**: 생성된 데이터를 비율별로 사용하여 10단계 AI를 학습시킵니다.
+2. **데이터셋 생성**: 에셋별 생성 개수를 지정하여 매직아이를 대량 생성합니다. (8:1:1 자동 분배)
+3. **AI 모델 학습**: GPU 가속 및 AMP를 적용하여 10단계 AI를 효율적으로 학습시킵니다.
 4. **AI 모델 최종 테스트**: 테스트(Test) 데이터를 통해 모델의 최종 성능을 측정합니다.
 5. **GCP 업로드**: 서비스에 사용될 테스트 데이터를 GCS에 업로드합니다.
-6. **AI 모델 업로드**: 서비스에 사용될 AI 플레이어 모델을 Hugging Face에 업로드합니다.
+6. **AI 모델 업로드**: AI 플레이어 모델을 Hugging Face에 업로드합니다.
+7. **데이터셋 통계**: 데이터셋의 전체 및 에셋별 분배 현황을 시각화합니다.
+8. **데이터셋 리밸런싱**: 잘못된 데이터셋 분배 비율을 8:1:1로 즉시 교정합니다.
+9. **종료**: 프로그램을 안전하게 종료합니다.
