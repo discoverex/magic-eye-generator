@@ -36,7 +36,7 @@
 ├───evaluate_results/         # 모델 검증용 성능 시각화 리포트 (.png)
 ├───test_results/             # 모델 최종 테스트용 성능 시각화 리포트 (.png)
 ├───main/                     # 통합 실행기 로직
-│   ├───runner.py             # 메뉴 및 실행 제어 (총 9개 시나리오 지원)
+│   ├───runner.py             # 메뉴 및 실행 제어 (총 10개 시나리오 지원)
 │   └───__init__.py
 ├───models/                   # AI 모델 가중치 및 로컬 캐시
 │   └───players/              # 단계별 학습된 AI 모델 (.pth)
@@ -58,6 +58,7 @@
     └───utils/                # 공통 유틸리티
         ├───dataset_stats.py       # 데이터셋 분배 통계 및 시각화
         ├───rebalance_dataset_split.py # 데이터셋 split 리밸런싱 (8:1:1)
+        ├───test_result_uploader.py # 테스트 결과 GCS 업로드
         ├───split_helper.py        # 공통 split 결정 로직
         └───stereogram.py          # 매직아이 생성 핵심 알고리즘
 ```
@@ -89,7 +90,7 @@
 python main.py
 ```
 
-실행 후 콘솔의 안내에 따라 1~9번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
+실행 후 콘솔의 안내에 따라 1~10번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
 
 ### 5. 개발 지침
 

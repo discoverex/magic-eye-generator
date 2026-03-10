@@ -1,6 +1,8 @@
 import os
 import multiprocessing
-from typing import Dict, Optional
+import json
+from datetime import datetime
+from typing import Dict, Optional, List, Any
 
 import matplotlib.pyplot as plt
 import torch
@@ -92,9 +94,10 @@ class ModelTester:
             
         return model
 
-    def test_level(self, level: int, test_loader: Optional[DataLoader] = None) -> float:
+    def test_level(self, level: int, test_loader: Optional[DataLoader] = None) -> Dict[str, Any]:
         """
         특정 레벨 모델의 최종 테스트 정확도를 평가합니다. AMP 추론이 적용되었습니다.
+        전체 정확도뿐만 아니라 에셋별 상세 지표를 반환합니다.
         """
         print(f"\n{'-' * 50}")
         print(f"🧪 AI Player Level {level} 최종 테스트 시작 (장치: {self.device})")
@@ -105,29 +108,82 @@ class ModelTester:
                 test_loader = self._prepare_test_loader()
         except Exception as e:
             print(f"⚠️ 테스트 중 오류 발생: {e}")
-            return 0.0
+            return {"accuracy": 0.0, "total": 0, "correct": 0}
 
         correct = 0
         total = 0
+        
+        # 에셋별 정답 현황 기록용
+        asset_correct = {cat: 0 for cat in self.categories}
+        asset_total = {cat: 0 for cat in self.categories}
         
         with torch.no_grad():
             test_pbar = tqdm(test_loader, desc=f"  └ 레벨 {level} 성능 평가", unit="배치", leave=False)
             for images, labels in test_pbar:
                 images, labels = images.to(self.device, non_blocking=True), labels.to(self.device, non_blocking=True)
                 
-                # AMP Autocast 적용 (추론 가속)
                 with torch.amp.autocast('cuda' if self.device.type == 'cuda' else 'cpu'):
                     outputs = model(images)
                 
                 _, predicted = torch.max(outputs.data, 1)
+                
+                # 배치 내 결과 집계
+                batch_correct = (predicted == labels)
+                correct += batch_correct.sum().item()
                 total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+                
+                # 에셋별 집계
+                for i in range(labels.size(0)):
+                    label_idx = labels[i].item()
+                    asset_id = self.categories[label_idx]
+                    asset_total[asset_id] += 1
+                    if batch_correct[i]:
+                        asset_correct[asset_id] += 1
 
         accuracy = 100 * correct / total if total > 0 else 0
-        tqdm.write(f"✅ Level {level} Test Accuracy: {accuracy:.2f}% (Total: {total} images)")
-        return accuracy
+        
+        # 에셋별 상세 리포트 생성
+        asset_metrics = {}
+        for aid in self.categories:
+            a_total = asset_total[aid]
+            a_correct = asset_correct[aid]
+            a_acc = (a_correct / a_total * 100) if a_total > 0 else 0
+            asset_metrics[aid] = {
+                "display_name": next((a['display_name'] for a in MAGIC_EYE_ASSETS if a['id'] == aid), aid),
+                "total": a_total,
+                "correct": a_correct,
+                "accuracy": round(a_acc, 2)
+            }
 
-    def visualize_test_results(self, results: Dict[int, float]):
+        tqdm.write(f"✅ Level {level} Test Accuracy: {accuracy:.2f}% (Total: {total} images)")
+        
+        return {
+            "level": level,
+            "accuracy": round(accuracy, 2),
+            "total_images": total,
+            "correct_images": correct,
+            "per_asset_metrics": asset_metrics
+        }
+
+    def save_test_results_json(self, results: List[Dict[str, Any]]):
+        """
+        테스트 로그 전체를 JSON 파일로 저장합니다.
+        """
+        log_data = {
+            "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "device": str(self.device),
+            "total_assets": len(self.categories),
+            "levels_tested": len(results),
+            "results": results
+        }
+        
+        save_path = self.result_dir / "test_logs.json"
+        with open(save_path, 'w', encoding='utf-8') as f:
+            json.dump(log_data, f, indent=4, ensure_ascii=False)
+            
+        print(f"📄 테스트 로그 저장 완료: {save_path}")
+
+    def visualize_test_results(self, results: List[Dict[str, Any]]):
         """
         레벨별 테스트 정확도 결과를 그래프로 시각화하여 저장합니다.
         """
@@ -135,8 +191,8 @@ class ModelTester:
             print("📉 시각화할 데이터가 없습니다.")
             return
 
-        levels = sorted(results.keys())
-        accuracies = [results[lv] for lv in levels]
+        levels = [r['level'] for r in results]
+        accuracies = [r['accuracy'] for r in results]
 
         plt.figure(figsize=(12, 7))
         plt.bar(levels, accuracies, color='skyblue', alpha=0.8)
@@ -170,7 +226,7 @@ class ModelTester:
 
     def run_full_test(self):
         """
-        모든 모델 레벨에 대해 최종 테스트를 수행하고 시각화합니다.
+        모든 모델 레벨에 대해 최종 테스트를 수행하고 시각화 및 로그 저장을 수행합니다.
         """
         levels = []
         if self.model_dir.exists():
@@ -187,19 +243,32 @@ class ModelTester:
             print("📁 테스트할 모델 파일이 'models/players/'에 없습니다.")
             return
 
-        # 테스트 로더를 한 번만 준비하여 재사용 (속도 향상)
         try:
             test_loader = self._prepare_test_loader(batch_size=128)
         except Exception as e:
             print(f"❌ 테스트 준비 실패: {e}")
             return
 
-        results = {}
+        all_results = []
         for lv in levels:
-            accuracy = self.test_level(lv, test_loader=test_loader)
-            results[lv] = accuracy
+            result = self.test_level(lv, test_loader=test_loader)
+            all_results.append(result)
 
-        self.visualize_test_results(results)
+        # JSON 로그 저장
+        self.save_test_results_json(all_results)
+        
+        # 시각화
+        self.visualize_test_results(all_results)
+
+
+if __name__ == "__main__":
+    import multiprocessing
+    try:
+        multiprocessing.set_start_method('spawn', force=True)
+    except RuntimeError: pass
+    
+    tester = ModelTester()
+    tester.run_full_test()
 
 
 if __name__ == "__main__":
