@@ -37,19 +37,26 @@ def start_app():
     애플리케이션의 메인 루프를 시작합니다.
     """
     while True:
-        print("\n" + "="*45)
+        print("\n" + "="*50)
         print(" 🌀 StereoVision Showdown: AI vs Human")
-        print("="*45)
+        print("="*50)
+        print(" [Engines]")
         print(" 1. 매직아이 데이터셋 초기화 (dataset_initializer.py)")
         print(" 2. 매직아이 데이터셋 생성 (dataset_generator.py)")
         print(" 3. AI 모델 단계별 학습 (model_trainer.py)")
         print(" 4. AI 모델 최종 테스트 (model_tester.py)")
         print(" 5. GCP Storage에 데이터 업로드 (image_uploader.py)")
         print(" 6. AI 모델 Hugging Face 업로드 (model_uploader.py)")
-        print(" 7. 종료 (Exit)")
-        print("-" * 45)
+        print("-" * 50)
+        print(" [Utilities]")
+        print(" 7. 데이터셋 분배 현황 확인 (dataset_stats.py)")
+        print(" 8. 데이터셋 split 리밸런싱 (rebalance_dataset_split.py)")
+        print("    💡 잘못된 split 비율을 8:1:1로 강제 재조정합니다.")
+        print("-" * 50)
+        print(" 9. 종료 (Exit)")
+        print("-" * 50)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~7): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~9): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
@@ -75,10 +82,16 @@ def start_app():
         elif choice == "6":
             print("\n🚀 Hugging Face 업로드를 시작합니다...")
             run_script("engines.model_uploader")
-        elif choice in ["7", "exit", "quit"]:
+        elif choice == "7":
+            print("\n📊 데이터셋 통계 확인을 시작합니다...")
+            run_script("utils.dataset_stats")
+        elif choice == "8":
+            print("\n🔄 데이터셋 리밸런싱을 시작합니다...")
+            run_script("utils.rebalance_dataset_split")
+        elif choice in ["9", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":
             continue
         else:
-            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~7번 중에서 선택해주세요.")
+            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~9번 중에서 선택해주세요.")
