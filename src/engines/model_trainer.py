@@ -42,11 +42,11 @@ class MagicEyeTrainer:
     def _prepare_dataloaders(self, data_ratio: float, batch_size: int) -> Tuple[DataLoader, DataLoader]:
         """
         훈련용(train) 및 검증용(val) DataLoader를 준비합니다.
-        GPU 전송 최적화(pin_memory) 및 병렬 로딩(num_workers)이 적용됩니다.
+        데이터 불균형 해결을 위해 WeightedRandomSampler를 적용합니다.
         """
         metadata_path = os.path.join(BASE_DIR, "datasets", "metadata.csv")
         
-        # 훈련 데이터셋 (비율 적용)
+        # 1. 훈련 데이터셋 로드
         train_dataset = MagicEyeDataset(
             csv_file=metadata_path,
             root_dir=str(BASE_DIR),
@@ -54,20 +54,36 @@ class MagicEyeTrainer:
             transform=self.transform,
             cat_to_idx=self.cat_to_idx
         )
+        
+        # 2. 클래스별 가중치 계산 (불균형 해소)
+        # 각 샘플의 클래스(asset_id) 빈도수를 계산하여 역수를 가중치로 부여
+        labels = [self.cat_to_idx[row['asset_id']] for _, row in train_dataset.metadata.iterrows()]
+        class_counts = torch.bincount(torch.tensor(labels))
+        class_weights = 1. / class_counts.float()
+        sample_weights = class_weights[labels]
+
+        # 3. 샘플러 설정
+        # data_ratio에 따라 전체 학습 데이터 중 사용할 샘플 수 결정
         num_train_samples = max(int(len(train_dataset) * data_ratio), 1)
-        train_indices = torch.randperm(len(train_dataset))[:num_train_samples]
-        train_subset = Subset(train_dataset, train_indices)
+        
+        # WeightedRandomSampler는 각 클래스를 균등하게 뽑도록 유도함
+        # replacement=True로 설정하여 데이터가 적은 클래스는 중복 추출될 수 있게 함
+        sampler = torch.utils.data.WeightedRandomSampler(
+            weights=sample_weights,
+            num_samples=num_train_samples,
+            replacement=True
+        )
         
         train_loader = DataLoader(
-            train_subset, 
+            train_dataset, 
             batch_size=batch_size, 
-            shuffle=True,
+            sampler=sampler,
             num_workers=self.num_workers,
             pin_memory=True if self.device.type == 'cuda' else False,
             persistent_workers=True if self.num_workers > 0 else False
         )
 
-        # 검증 데이터셋 (전체 사용)
+        # 4. 검증 데이터셋 (검증은 원래 분포를 확인하기 위해 셔플 없이 로드)
         val_dataset = MagicEyeDataset(
             csv_file=metadata_path,
             root_dir=str(BASE_DIR),
