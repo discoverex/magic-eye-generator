@@ -5,6 +5,10 @@ from typing import Dict, Optional
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
+
+# 한글 폰트 설정 (Windows 기준)
+plt.rcParams['font.family'] = 'Malgun Gothic'
+plt.rcParams['axes.unicode_minus'] = False
 from torch.utils.data import DataLoader
 from torchvision import models, transforms
 from tqdm import tqdm

@@ -1,12 +1,15 @@
 import csv
 import os
 from collections import defaultdict
-
 import matplotlib.pyplot as plt
 import numpy as np
 
+# 한글 폰트 설정 (Windows 기준)
+plt.rcParams['font.family'] = 'Malgun Gothic'
+plt.rcParams['axes.unicode_minus'] = False
 
 def get_dataset_stats(metadata_path: str):
+
     """전체 split 통계를 계산하여 반환합니다."""
     if not os.path.exists(metadata_path):
         return None, None
