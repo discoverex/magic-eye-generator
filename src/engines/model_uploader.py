@@ -35,8 +35,7 @@ class ModelUploader:
             print(f"❌ 오류: 모델 폴더가 존재하지 않습니다: {self.model_dir}")
             return
 
-        # 1. 레포지토리 준비
-        self.hf_service.ensure_repo_exists(private=False)
+        # 레포지토리 존재 확인은 __main__에서 호출됨
 
         # 2. 모델 파일 필터링 (.pth 파일만)
         model_files = sorted(list(self.model_dir.glob("*.pth")))
@@ -78,5 +77,11 @@ if __name__ == "__main__":
         print("❌ 레포지토리 ID가 입력되지 않아 종료합니다.")
         sys.exit(1)
 
+    print("\n🔒 레포지토리를 비공개(Private)로 설정하시겠습니까?")
+    is_private_input = input("👉 Y (비공개) / N (공개, 기본값): ").strip().upper()
+    is_private = True if is_private_input == 'Y' else False
+
     uploader = ModelUploader(repo_id=target_repo)
+    # 선택한 공개/비공개 설정 반영
+    uploader.hf_service.ensure_repo_exists(private=is_private)
     uploader.run_upload()
