@@ -2,7 +2,6 @@ import asyncio
 import csv
 import multiprocessing
 import os
-import random
 import re
 import signal
 from datetime import datetime
@@ -15,8 +14,8 @@ from tqdm.asyncio import tqdm
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.magic_eye_service import MagicEyeService
-from src.utils.stereogram import create_stereogram
 from src.utils.split_helper import get_split_from_index
+from src.utils.stereogram import create_stereogram
 
 
 def _cpu_worker_process(input_queue: multiprocessing.Queue, result_queue: multiprocessing.Queue):

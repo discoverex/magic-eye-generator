@@ -1,6 +1,6 @@
 import csv
-import random
 import os
+import random
 from collections import defaultdict
 
 from src.config.settings import BASE_DIR
