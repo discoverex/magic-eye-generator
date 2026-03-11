@@ -61,29 +61,53 @@ AI Difficulty (10 Levels)
 
 ### 1. API 호출 방식 (Next.js / TypeScript Example)
 
-프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. **이미지 바이너리 데이터** 또는 **GCS/S3 버킷의 이미지 URL**을 직접 전달할 수 있습니다.
+프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. **이미지 바이너리 데이터** 또는 **GCS/S3 버킷의 Signed URL**을 직접 전달할 수 있습니다.
+
+#### 타입 정의 (TypeScript)
+실제 허깅페이스 커스텀 핸들러가 반환하는 JSON 구조에 맞춘 인터페이스입니다.
+
+```typescript
+/**
+ * 매직아이 AI 분석 응답 인터페이스
+ */
+export interface MagicEyeResponse {
+  label: string;  // 분석된 사물 ID (예: "dinosaur", "heart")
+  score: number;  // 분석 신뢰도 (0.0 ~ 1.0)
+  level: number;  // 분석에 사용된 AI 플레이어 레벨 (1 ~ 10)
+}
+```
 
 #### Case A: 이미지 URL 전달 (추천)
-바이너리 전송 오버헤드가 없으므로, 버킷에 저장된 이미지 URL을 보내는 것이 가장 효율적입니다.
+바이너리 전송 오버헤드가 없으므로, 버킷에 저장된 이미지 URL(Signed URL 포함)을 보내는 것이 가장 효율적입니다.
 
 ```typescript
 // services/magic-eye-api.ts
+import { MagicEyeResponse } from "../types/magic-eye";
+
 export async function queryMagicEyeByUrl(
   imageUrl: string, 
   aiLevel: number = 10
 ): Promise<MagicEyeResponse[]> {
-  const response = await fetch("https://api-inference.huggingface.co/models/postelian/magic-eye-finder", {
+  const REPO_ID = "postelian/magic-eye-finder";
+  const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
+
+  const response = await fetch(`https://api-inference.huggingface.co/models/${REPO_ID}`, {
     headers: { 
       Authorization: `Bearer ${HF_TOKEN}`,
       "Content-Type": "application/json" 
     },
     method: "POST",
     body: JSON.stringify({
-      inputs: imageUrl, // 이미지 URL 직접 전달
+      inputs: imageUrl, // 이미지 URL 또는 Signed URL 전달
       parameters: { level: aiLevel }
     }),
   });
-  return await response.json();
+
+  if (!response.ok) throw new Error("AI 분석 실패");
+  
+  // 허깅페이스는 커스텀 핸들러 사용 시 배열 형태를 반환합니다.
+  const result: MagicEyeResponse[] = await response.json();
+  return result;
 }
 ```
 
