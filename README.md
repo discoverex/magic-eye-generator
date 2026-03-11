@@ -52,6 +52,63 @@ AI Difficulty (10 Levels)
 - Performance Optimization: **AMP(혼합 정밀도)** 학습 및 **GPU 병렬 데이터 로딩**을 통해 훈련 및 테스트 속도를 대폭 향상.
 - Visualization: 데이터셋 분배 현황 및 모델 성능 추이를 그래프로 시각화하여 데이터 무결성 상시 점검.
 
+## 🌐 AI Model API (Hugging Face)
+
+학습된 10단계의 AI 모델은 Hugging Face Hub에 업로드되어 있으며, Next.js 등의 프론트엔드 환경에서 Inference API를 통해 직접 호출할 수 있습니다.
+
+- **Repository**: [postelian/magic-eye-finder](https://huggingface.co/postelian/magic-eye-finder)
+- **Model Path**: `models/ai_lv{level}.pth` (level: 1~10)
+
+### 1. API 호출 방식 (Next.js Example)
+
+Hugging Face Inference API를 사용하여 특정 레벨의 AI에게 매직아이 이미지를 판독하도록 요청하는 예제입니다.
+
+```typescript
+// app/api/predict/route.ts (Next.js App Router)
+export async function POST(req: Request) {
+  const { imageUrl, level } = await req.json();
+  const HF_TOKEN = process.env.HF_TOKEN;
+  
+  // 모델 레벨에 따른 엔드포인트 설정 (lv1 ~ lv10)
+  // Note: .pth 파일은 Generic Inference 혹은 Custom Handler를 통해 호출됩니다.
+  const response = await fetch(
+    `https://api-inference.huggingface.co/models/postelian/magic-eye-finder/models/ai_lv${level}.pth`,
+    {
+      headers: { Authorization: `Bearer ${HF_TOKEN}` },
+      method: "POST",
+      body: await (await fetch(imageUrl)).blob(), // 이미지 바이너리 전달
+    }
+  );
+
+  const result = await response.json();
+  return Response.json(result);
+}
+```
+
+### 2. 응답 데이터 형태 (Response Format)
+
+Inference API 호출 시, 모델은 각 클래스별 신뢰도(Score)를 담은 배열을 반환합니다.
+
+```json
+[
+  { "label": "heart", "score": 0.9842 },
+  { "label": "star", "score": 0.0125 },
+  { "label": "butterfly", "score": 0.0021 },
+  ...
+]
+```
+
+- **label**: `src/consts/magic_eye_assets.py`에 정의된 30종의 사물 ID (예: `dinosaur`, `rocket`, `apple` 등)
+- **score**: 0~1 사이의 확률 값 (높을수록 해당 사물일 가능성이 높음)
+
+### 3. AI 성능 가이드
+
+| 레벨 | 학습 데이터량 | 주요 특징 |
+|:---:|:---:|---|
+| **Lv 1-3** | 10~30% | "운에 맡기는 초보" - 형태를 거의 구분하지 못하고 랜덤에 가까운 예측을 합니다. |
+| **Lv 4-7** | 40~70% | "학습 중인 중급자" - 뚜렷한 외곽선은 파악하지만 복잡한 패턴에서 혼동을 겪습니다. |
+| **Lv 8-10** | 80~100% | "매직아이 마스터" - 고해상도 시차를 완벽히 분석하여 인간보다 빠르게 정답을 맞춥니다. |
+
 ---
 
 ## 프로젝트 구조
