@@ -5,7 +5,7 @@ from torchvision import models
 from pathlib import Path
 from tqdm import tqdm
 
-from src.config.settings import BASE_DIR
+from src.config.settings import BASE_DIR, BUCKET_NAME
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.gcp_storage_service import GCPStorageService
 
@@ -15,9 +15,10 @@ class ONNXConverter:
     훈련된 PyTorch (.pth) 모델들을 ONNX 형식으로 변환하는 엔진 클래스.
     변환된 모델은 웹 브라우저(ONNX Runtime Web)나 Node.js에서 실행 가능합니다.
     """
-    def __init__(self):
+    def __init__(self, bucket_name: str = BUCKET_NAME):
         self.model_dir = BASE_DIR / "models" / "players"
         self.onnx_dir = BASE_DIR / "models" / "onnx"
+        self.bucket_name = bucket_name
         self.categories = [asset["id"] for asset in MAGIC_EYE_ASSETS]
         self.device = torch.device("cpu") # 변환은 CPU에서 안정적으로 수행
         
@@ -96,7 +97,7 @@ class ONNXConverter:
         # 버킷 내 'models/onnx/' 경로에 저장
         for file_path in tqdm(files, desc="GCS 업로드 중"):
             blob_name = f"models/onnx/{file_path.name}"
-            gcs_service.upload_file(str(file_path), blob_name)
+            gcs_service.upload_file(self.bucket_name, str(file_path), blob_name)
             
         print(f"✅ 모든 ONNX 모델이 GCS에 업로드되었습니다.")
 
