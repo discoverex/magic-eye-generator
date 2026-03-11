@@ -61,50 +61,34 @@ AI Difficulty (10 Levels)
 
 ### 1. API 호출 방식 (Next.js / TypeScript Example)
 
-프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. 타입 안정성을 위해 `interface`를 정의하여 사용합니다.
+프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. **이미지 바이너리 데이터** 또는 **GCS/S3 버킷의 이미지 URL**을 직접 전달할 수 있습니다.
+
+#### Case A: 이미지 URL 전달 (추천)
+바이너리 전송 오버헤드가 없으므로, 버킷에 저장된 이미지 URL을 보내는 것이 가장 효율적입니다.
 
 ```typescript
-// types/magic-eye.ts
-export interface MagicEyeResponse {
-  label: string;
-  score: number;
-  level: number;
-}
-
 // services/magic-eye-api.ts
-export async function queryMagicEye(
-  imageFile: File | Blob, 
+export async function queryMagicEyeByUrl(
+  imageUrl: string, 
   aiLevel: number = 10
 ): Promise<MagicEyeResponse[]> {
-  const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
-  const REPO_ID = "postelian/magic-eye-finder";
-
-  // 이미지를 ArrayBuffer로 변환
-  const arrayBuffer = await imageFile.arrayBuffer();
-
-  const response = await fetch(
-    `https://api-inference.huggingface.co/models/${REPO_ID}`,
-    {
-      headers: {
-        Authorization: `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        inputs: Array.from(new Uint8Array(arrayBuffer)), // 이미지 데이터 전달
-        parameters: { level: aiLevel }, // 1~10 사이의 난이도 선택
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error("AI 분석 요청에 실패했습니다.");
-  }
-
-  const result: MagicEyeResponse[] = await response.json();
-  return result;
+  const response = await fetch("https://api-inference.huggingface.co/models/postelian/magic-eye-finder", {
+    headers: { 
+      Authorization: `Bearer ${HF_TOKEN}`,
+      "Content-Type": "application/json" 
+    },
+    method: "POST",
+    body: JSON.stringify({
+      inputs: imageUrl, // 이미지 URL 직접 전달
+      parameters: { level: aiLevel }
+    }),
+  });
+  return await response.json();
 }
 ```
+
+#### Case B: 이미지 바이너리(File/Blob) 전달
+로컬에서 업로드한 파일을 즉시 분석할 때 사용합니다.
 
 ### 2. 응답 데이터 형태 (Response Format)
 

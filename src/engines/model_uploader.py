@@ -18,7 +18,7 @@ class ModelUploader:
 
     def _generate_handler_py(self):
         """
-        프론트엔드에서 선택한 AI 레벨에 따라 동적으로 모델을 전환하는 handler.py를 생성합니다.
+        URL 또는 바이너리 이미지를 모두 처리하는 동적 handler.py를 생성합니다.
         """
         from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
         categories = [asset["id"] for asset in MAGIC_EYE_ASSETS]
@@ -30,17 +30,14 @@ from torchvision import models, transforms
 from PIL import Image
 import io
 import os
+import requests
 
 class EndpointHandler():
     def __init__(self, path="."):
         self.path = path
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.categories = {categories}
-        
-        # 모델 캐시 (여러 레벨의 모델을 메모리에 보관하여 속도 향상)
         self.models = {{}}
-        
-        # 전처리 정의
         self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -48,13 +45,10 @@ class EndpointHandler():
         ])
 
     def _get_model(self, level):
-        \"\"\"선택된 레벨의 모델을 로드하거나 캐시에서 반환합니다.\"\"\"
         if level in self.models:
             return self.models[level]
-            
         model = models.resnet18()
         model.fc = nn.Linear(model.fc.in_features, len(self.categories))
-        
         model_path = os.path.join(self.path, "models", f"ai_lv{{level}}.pth")
         if os.path.exists(model_path):
             state_dict = torch.load(model_path, map_location=self.device)
@@ -62,45 +56,45 @@ class EndpointHandler():
             model.to(self.device)
             model.eval()
             self.models[level] = model
-            print(f"✅ Loaded AI Level {{level}} model")
             return model
-        else:
-            raise ValueError(f"Model for level {{level}} not found at {{model_path}}")
+        raise ValueError(f"Model level {{level}} not found")
 
     def __call__(self, data):
-        # 1. 프론트엔드에서 보낸 이미지 및 파라미터 추출
         inputs = data.pop("inputs", data)
         parameters = data.pop("parameters", {{}})
-        
-        # 선택된 레벨 (기본값 10)
         level = int(parameters.get("level", 10))
-        
-        # 2. 이미지 처리
-        if isinstance(inputs, bytes):
-            image = Image.open(io.BytesIO(inputs)).convert("RGB")
-        else:
-            image = Image.open(io.BytesIO(inputs)).convert("RGB")
-            
-        # 3. 모델 선택 및 추론
+
+        # 1. 입력이 URL인지 바이너리인지 판단하여 이미지 로드
+        try:
+            if isinstance(inputs, str) and (inputs.startswith("http://") or inputs.startswith("https://")):
+                # URL로부터 이미지 다운로드
+                response = requests.get(inputs, timeout=10)
+                image = Image.open(io.BytesIO(response.content)).convert("RGB")
+            elif isinstance(inputs, bytes):
+                image = Image.open(io.BytesIO(inputs)).convert("RGB")
+            else:
+                # 기타 케이스 (base64 등은 프론트에서 전처리 필요하거나 여기서 추가 구현 가능)
+                image = Image.open(io.BytesIO(inputs)).convert("RGB")
+        except Exception as e:
+            return {{"error": f"Failed to load image: {{str(e)}}"}}
+
+        # 2. 모델 추론
         try:
             model = self._get_model(level)
+            img_tensor = self.transform(image).unsqueeze(0).to(self.device)
+            with torch.no_grad():
+                outputs = model(img_tensor)
+                probs = torch.nn.functional.softmax(outputs, dim=1)
+                confidence, predicted = torch.max(probs, 1)
+            
+            label = self.categories[predicted.item()]
+            return [{{
+                "label": label, 
+                "score": float(confidence.item()),
+                "level": level
+            }}]
         except Exception as e:
             return {{"error": str(e)}}
-            
-        img_tensor = self.transform(image).unsqueeze(0).to(self.device)
-        
-        with torch.no_grad():
-            outputs = model(img_tensor)
-            probs = torch.nn.functional.softmax(outputs, dim=1)
-            confidence, predicted = torch.max(probs, 1)
-            
-        label = self.categories[predicted.item()]
-        
-        return [{{
-            "label": label,
-            "score": float(confidence.item()),
-            "level": level
-        }}]
 """
         handler_path = self.model_dir / "handler.py"
         with open(handler_path, "w", encoding="utf-8") as f:
@@ -109,9 +103,9 @@ class EndpointHandler():
 
     def _generate_requirements_txt(self):
         """
-        추론 서버 구동에 필요한 패키지 목록을 생성합니다.
+        필요한 패키지에 requests를 추가합니다.
         """
-        content = "torch\ntorchvision\nPillow\n"
+        content = "torch\ntorchvision\nPillow\nrequests\n"
         req_path = self.model_dir / "requirements.txt"
         with open(req_path, "w", encoding="utf-8") as f:
             f.write(content)
