@@ -90,7 +90,16 @@ export async function predictMagicEye(
   const maxProb = Math.max(...probabilities);
   const classIdx = probabilities.indexOf(maxProb);
   
-  // ASSETS_LABELS는 src/consts/magic_eye_assets.py의 id 리스트와 동일해야 함
+  // ASSETS_LABELS는 모델 학습 시 사용된 클래스 순서와 동일해야 함
+  const ASSETS_LABELS = [
+    "dinosaur", "elephant", "rocket", "guitar", "umbrella", 
+    "butterfly", "bicycle", "heart", "star", "tree", 
+    "car", "house", "apple", "book", "chair", 
+    "cup", "diamond", "fish", "flower", "hat", 
+    "key", "leaf", "moon", "mountain", "pencil", 
+    "phone", "ship", "sun", "watch", "cloud"
+  ];
+
   const label = ASSETS_LABELS[classIdx];
 
   return { label, score: maxProb };
@@ -104,7 +113,21 @@ function softmax(arr: Float32Array): number[] {
 }
 ```
 
-### 2. AI 플레이어 난이도 가이드
+### 2. 응답 데이터 형태 (Response Format)
+
+추론 함수가 반환하는 최종 객체 구조입니다.
+
+```json
+{
+  "label": "heart",
+  "score": 0.9842
+}
+```
+
+- **label**: `src/consts/magic_eye_assets.py`에 정의된 30종의 사물 ID (예: `dinosaur`, `rocket`, `apple` 등)
+- **score**: 0~1 사이의 확률 값 (신뢰도)
+
+### 3. AI 플레이어 난이도 가이드
 
 변환된 ONNX 모델은 각 레벨별 학습 상태를 그대로 유지하며, GCS에서 필요한 시점에 동적으로 로드됩니다.
 
