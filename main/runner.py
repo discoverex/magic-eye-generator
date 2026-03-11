@@ -56,11 +56,13 @@ def start_app():
         print("    💡 잘못된 split 비율을 8:1:1로 강제 재조정합니다.")
         print(" 11. AI 모델 ONNX 변환 (onnx_converter.py)")
         print("    💡 PyTorch (.pth) 모델을 웹용 ONNX로 변환합니다.")
+        print(" 12. AI 테스트 분석 리포트 생성 (test_report_generator.py)")
+        print("    💡 테스트 결과를 LLM으로 분석하여 리포트를 작성합니다.")
         print("-" * 50)
-        print(" 12. 종료 (Exit)")
+        print(" 13. 종료 (Exit)")
         print("-" * 50)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~12): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~13): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
@@ -101,7 +103,10 @@ def start_app():
         elif choice == "11":
             print("\n🔄 AI 모델 ONNX 변환을 시작합니다...")
             run_script("engines.onnx_converter")
-        elif choice in ["12", "exit", "quit"]:
+        elif choice == "12":
+            print("\n📝 AI 테스트 분석 리포트 생성을 시작합니다...")
+            run_script("utils.test_report_generator")
+        elif choice in ["13", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":

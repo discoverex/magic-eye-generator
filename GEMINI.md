@@ -62,6 +62,7 @@
     └───utils/                # 공통 유틸리티
         ├───dataset_stats.py       # 데이터셋 분배 통계 및 시각화
         ├───rebalance_dataset_split.py # 데이터셋 split 리밸런싱 (8:1:1)
+        ├───test_report_generator.py # AI 테스트 분석 리포트 생성
         ├───split_helper.py        # 공통 split 결정 로직
         └───stereogram.py          # 매직아이 생성 핵심 알고리즘
 ```
