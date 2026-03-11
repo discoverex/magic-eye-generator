@@ -14,7 +14,7 @@
 이 프로젝트는 다음과 같은 주요 기술과 라이브러리를 사용합니다.
 
 - **웹 프레임워크**: `FastAPI`, `Uvicorn`
-- **AI / 머신러닝**: `PyTorch`, `Diffusers`, `Transformers`, `Accelerate`, `Langchain`, `Langchain-OpenAI`
+- **AI / 머신러닝**: `PyTorch`, `ONNX`, `Diffusers`, `Transformers`, `Accelerate`, `Langchain`, `Langchain-OpenAI`
 - **이미지 및 데이터 처리**: `NumPy`, `Pillow`, `OpenCV`, `Matplotlib` (성능 시각화)
 - **클라우드 서비스**: `Firebase Admin`, `Google Cloud Storage`
 - **패키지 및 환경 관리**: `uv`
@@ -36,10 +36,11 @@
 ├───evaluate_results/         # 모델 검증용 성능 시각화 리포트 (.png)
 ├───test_results/             # 모델 최종 테스트용 성능 시각화 리포트 (.png)
 ├───main/                     # 통합 실행기 로직
-│   ├───runner.py             # 메뉴 및 실행 제어 (총 9개 시나리오 지원)
+│   ├───runner.py             # 메뉴 및 실행 제어 (총 10개 시나리오 지원)
 │   └───__init__.py
 ├───models/                   # AI 모델 가중치 및 로컬 캐시
-│   └───players/              # 단계별 학습된 AI 모델 (.pth)
+│   ├───players/              # 단계별 학습된 AI 모델 (.pth)
+│   └───onnx/                 # 웹 배포용 변환된 모델 (.onnx)
 └───src/                      # 소스 코드 루트
     ├───config/               # 애플리케이션 설정 (settings.py)
     ├───consts/               # 상수 정의 (에셋 정의 등)
@@ -49,6 +50,7 @@
     │   ├───model_trainer.py       # GPU 최적화 기반 AI 모델 단계별 학습
     │   ├───model_tester.py        # GPU 최적화 기반 최종 모델 성능 측정 및 시각화
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
+    │   ├───onnx_converter.py      # PyTorch 모델을 ONNX로 변환 및 GCS 업로드
     │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
     ├───services/             # 외부 연동 서비스
@@ -89,7 +91,7 @@
 python main.py
 ```
 
-실행 후 콘솔의 안내에 따라 1~9번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
+실행 후 콘솔의 안내에 따라 1~10번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
 
 ### 5. 개발 지침
 

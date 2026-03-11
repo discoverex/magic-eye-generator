@@ -52,11 +52,13 @@ def start_app():
         print(" 7. 데이터셋 분배 현황 확인 (dataset_stats.py)")
         print(" 8. 데이터셋 split 리밸런싱 (rebalance_dataset_split.py)")
         print("    💡 잘못된 split 비율을 8:1:1로 강제 재조정합니다.")
+        print(" 9. AI 모델 ONNX 변환 (onnx_converter.py)")
+        print("    💡 PyTorch (.pth) 모델을 웹용 ONNX로 변환합니다.")
         print("-" * 50)
-        print(" 9. 종료 (Exit)")
+        print(" 10. 종료 (Exit)")
         print("-" * 50)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~9): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~10): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
@@ -88,7 +90,10 @@ def start_app():
         elif choice == "8":
             print("\n🔄 데이터셋 리밸런싱을 시작합니다...")
             run_script("utils.rebalance_dataset_split")
-        elif choice in ["9", "exit", "quit"]:
+        elif choice == "9":
+            print("\n🔄 AI 모델 ONNX 변환을 시작합니다...")
+            run_script("engines.onnx_converter")
+        elif choice in ["10", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":

@@ -52,95 +52,67 @@ AI Difficulty (10 Levels)
 - Performance Optimization: **AMP(혼합 정밀도)** 학습 및 **GPU 병렬 데이터 로딩**을 통해 훈련 및 테스트 속도를 대폭 향상.
 - Visualization: 데이터셋 분배 현황 및 모델 성능 추이를 그래프로 시각화하여 데이터 무결성 상시 점검.
 
-## 🌐 AI Model API (Hugging Face)
+## 🌐 AI Model (ONNX & GCP Storage)
 
-학습된 10단계의 AI 모델은 Hugging Face Hub에 통합되어 업로드되어 있습니다. `handler.py`(Custom Handler)를 통해 단일 엔드포인트에서 사용자가 원하는 AI 레벨을 동적으로 선택하여 호출할 수 있습니다.
+학습된 10단계의 AI 모델은 웹 환경(Next.js, Node.js)에서 직접 실행할 수 있도록 **ONNX** 형식으로 변환되어 **GCP Storage**에 호스팅됩니다. 별도의 파이썬 백엔드 없이 클라이언트 브라우저에서 `onnxruntime-web`을 통해 실시간 추론이 가능합니다.
 
-- **Repository**: [postelian/magic-eye-finder](https://huggingface.co/postelian/magic-eye-finder)
-- **Endpoint**: `https://api-inference.huggingface.co/models/postelian/magic-eye-finder`
+### 1. 모델 로드 및 추론 (Next.js / TypeScript Example)
 
-### 1. API 호출 방식 (Next.js / TypeScript Example)
+프론트엔드에서 특정 레벨(1~10)의 ONNX 모델을 다운로드하여 이미지를 판독하는 예제입니다.
 
-프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. **이미지 바이너리 데이터** 또는 **GCS/S3 버킷의 Signed URL**을 직접 전달할 수 있습니다.
+#### 패키지 설치
+```bash
+npm install onnxruntime-web
+```
 
-#### 타입 정의 (TypeScript)
-실제 허깅페이스 커스텀 핸들러가 반환하는 JSON 구조에 맞춘 인터페이스입니다.
-
+#### 추론 로직 (TypeScript)
 ```typescript
+import * as ort from 'onnxruntime-web';
+
 /**
- * 매직아이 AI 분석 응답 인터페이스
+ * GCS에서 ONNX 모델을 로드하여 매직아이 이미지를 분석합니다.
  */
-export interface MagicEyeResponse {
-  label: string;  // 분석된 사물 ID (예: "dinosaur", "heart")
-  score: number;  // 분석 신뢰도 (0.0 ~ 1.0)
-  level: number;  // 분석에 사용된 AI 플레이어 레벨 (1 ~ 10)
-}
-```
+export async function predictMagicEye(
+  imageTensor: ort.Tensor, // 전처리된 (1, 3, 224, 224) 텐서
+  level: number = 10
+): Promise<{ label: string; score: number }> {
+  // 1. GCS 버킷에서 해당 레벨의 모델 로드
+  const modelUrl = `https://storage.googleapis.com/YOUR_BUCKET_NAME/models/onnx/ai_lv${level}.onnx`;
+  const session = await ort.InferenceSession.create(modelUrl);
 
-#### Case A: 이미지 URL 전달 (추천)
-바이너리 전송 오버헤드가 없으므로, 버킷에 저장된 이미지 URL(Signed URL 포함)을 보내는 것이 가장 효율적입니다.
+  // 2. 추론 실행
+  const inputs = { input: imageTensor };
+  const outputs = await session.run(inputs);
+  const output = outputs.output; // 모델의 출력 레이어 이름
 
-```typescript
-// services/magic-eye-api.ts
-import { MagicEyeResponse } from "../types/magic-eye";
-
-export async function queryMagicEyeByUrl(
-  imageUrl: string, 
-  aiLevel: number = 10
-): Promise<MagicEyeResponse[]> {
-  const REPO_ID = "postelian/magic-eye-finder";
-  const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
-
-  const response = await fetch(`https://api-inference.huggingface.co/models/${REPO_ID}`, {
-    headers: { 
-      Authorization: `Bearer ${HF_TOKEN}`,
-      "Content-Type": "application/json" 
-    },
-    method: "POST",
-    body: JSON.stringify({
-      inputs: imageUrl, // 이미지 URL 또는 Signed URL 전달
-      parameters: { level: aiLevel }
-    }),
-  });
-
-  if (!response.ok) throw new Error("AI 분석 실패");
+  // 3. 결과 해석 (Softmax 및 Label 매칭)
+  const probabilities = softmax(output.data as Float32Array);
+  const maxProb = Math.max(...probabilities);
+  const classIdx = probabilities.indexOf(maxProb);
   
-  // 허깅페이스는 커스텀 핸들러 사용 시 배열 형태를 반환합니다.
-  const result: MagicEyeResponse[] = await response.json();
-  return result;
+  // ASSETS_LABELS는 src/consts/magic_eye_assets.py의 id 리스트와 동일해야 함
+  const label = ASSETS_LABELS[classIdx];
+
+  return { label, score: maxProb };
+}
+
+function softmax(arr: Float32Array): number[] {
+  const maxVal = Math.max(...arr);
+  const exps = arr.map((x) => Math.exp(x - maxVal));
+  const sumExps = exps.reduce((a, b) => a + b, 0);
+  return Array.from(exps.map((x) => x / sumExps));
 }
 ```
 
-#### Case B: 이미지 바이너리(File/Blob) 전달
-로컬에서 업로드한 파일을 즉시 분석할 때 사용합니다.
+### 2. AI 플레이어 난이도 가이드
 
-### 2. 응답 데이터 형태 (Response Format)
+변환된 ONNX 모델은 각 레벨별 학습 상태를 그대로 유지하며, GCS에서 필요한 시점에 동적으로 로드됩니다.
 
-커스텀 핸들러를 통해 분석 결과와 함께 요청한 AI 레벨 정보가 포함되어 반환됩니다.
-
-```json
-[
-  {
-    "label": "heart",
-    "score": 0.9842,
-    "level": 10
-  }
-]
-```
-
-- **label**: `src/consts/magic_eye_assets.py`에 정의된 30종의 사물 ID (예: `dinosaur`, `rocket`, `apple` 등)
-- **score**: 0~1 사이의 확률 값 (신뢰도)
-- **level**: 추론에 사용된 AI 플레이어의 난이도 레벨 (1~10)
-
-### 3. AI 플레이어 난이도 가이드
-
-사용자가 선택한 레벨에 따라 Hugging Face 서버 내부에서 해당 모델 가중치를 즉시 로드하여 처리합니다.
-
-| 레벨 | 학습 단계 | 내부 동작 및 특징 |
+| 레벨 | 모델 파일 | 특징 |
 |:---:|:---:|---|
-| **Lv 1-3** | 초기 학습 | `ai_lv1~3.pth` 로드: 노이즈와 형상을 거의 구분하지 못하는 초보 단계입니다. |
-| **Lv 4-7** | 중간 학습 | `ai_lv4~7.pth` 로드: 대략적인 외곽선은 파악하지만 복잡한 패턴에서 실수를 합니다. |
-| **Lv 8-10** | 최종 최적화 | `ai_lv8~10.pth` 로드: 고해상도 시차 분석을 통해 인간보다 정밀하게 정답을 맞춥니다. |
+| **Lv 1-3** | `ai_lv1~3.onnx` | 노이즈와 형상을 거의 구분하지 못하는 초보 단계입니다. |
+| **Lv 4-7** | `ai_lv4~7.onnx` | 대략적인 외곽선은 파악하지만 복잡한 패턴에서 실수를 합니다. |
+| **Lv 8-10** | `ai_lv8~10.onnx` | 고해상도 시차 분석을 통해 인간보다 정밀하게 정답을 맞춥니다. |
 
 ---
 
@@ -153,30 +125,29 @@ export async function queryMagicEyeByUrl(
 │   README.md
 │   uv.lock                   # uv 잠금 파일
 │
-├───datasets/                 # 매직아이 데이터셋 저장 경로 (이미지 및 metadata.csv)
+├───datasets/                 # 매직아이 데이터셋 저장 경로
 ├───evaluate_results/         # 모델 검증 성능 시각화 결과 저장
 ├───test_results/             # 모델 최종 테스트 시각화 결과 저장
 ├───main/                     # 통합 실행기 로직
-│   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 9개 옵션 제공)
+│   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 10개 옵션 제공)
 │   └───__init__.py
 ├───models/                   # AI 모델 가중치 및 로컬 캐시
 │   ├───players/              # 학습된 AI 플레이어 모델 (.pth)
+│   └───onnx/                 # 웹용 변환된 모델 (.onnx)
 └───src/                      # 소스 코드 루트
     ├───config/               # 애플리케이션 설정
     ├───consts/               # 상수 및 에셋 정의
     ├───engines/              # 핵심 엔진
     │   ├───dataset_initializer.py # 데이터셋 초기화
     │   ├───dataset_generator.py   # 매직아이 생성 (8:1:1 자동 할당)
-    │   ├───model_trainer.py       # GPU 가속 기반 AI 모델 학습
-    │   ├───model_tester.py        # GPU 가속 기반 모델 성능 측정
+    │   ├───model_trainer.py       # AI 모델 학습
+    │   ├───model_tester.py        # 모델 성능 측정
+    │   ├───onnx_converter.py      # 모델 ONNX 변환 및 GCS 업로드
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
     │   └───image_uploader.py      # GCS 업로드
     ├───dtos/                 # 데이터 전송 객체
     ├───services/             # 외부 서비스 연동
     └───utils/                # 보조 유틸리티
-        ├───dataset_stats.py       # 데이터셋 통계 및 시각화
-        ├───rebalance_dataset_split.py # 데이터셋 리밸런싱
-        └───split_helper.py        # 공통 split 결정 로직
 ```
 
 ## 설치 및 실행
@@ -207,10 +178,11 @@ python main.py
 **제공 기능:**
 1. **데이터셋 초기화**: 기존 생성된 모든 데이터를 삭제합니다.
 2. **데이터셋 생성**: 에셋별 생성 개수를 지정하여 매직아이를 대량 생성합니다. (8:1:1 자동 분배)
-3. **AI 모델 학습**: GPU 가속 및 AMP를 적용하여 10단계 AI를 효율적으로 학습시킵니다.
-4. **AI 모델 최종 테스트**: 테스트(Test) 데이터를 통해 모델의 최종 성능을 측정합니다.
+3. **AI 모델 학습**: 10단계 AI 모델을 학습시킵니다.
+4. **AI 모델 최종 테스트**: 테스트 데이터를 통해 모델 성능을 측정합니다.
 5. **GCP 업로드**: 서비스에 사용될 테스트 데이터를 GCS에 업로드합니다.
 6. **AI 모델 업로드**: AI 플레이어 모델을 Hugging Face에 업로드합니다.
-7. **데이터셋 통계**: 데이터셋의 전체 및 에셋별 분배 현황을 시각화합니다.
-8. **데이터셋 리밸런싱**: 잘못된 데이터셋 분배 비율을 8:1:1로 즉시 교정합니다.
-9. **종료**: 프로그램을 안전하게 종료합니다.
+7. **데이터셋 통계**: 데이터셋 분배 현황을 시각화합니다.
+8. **데이터셋 리밸런싱**: 데이터셋 분배 비율을 8:1:1로 교정합니다.
+9. **AI 모델 ONNX 변환**: PyTorch 모델을 웹용 ONNX로 변환하고 GCS에 업로드합니다.
+10. **종료**: 프로그램을 종료합니다.
