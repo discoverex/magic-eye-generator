@@ -54,60 +54,65 @@ AI Difficulty (10 Levels)
 
 ## 🌐 AI Model API (Hugging Face)
 
-학습된 10단계의 AI 모델은 Hugging Face Hub에 업로드되어 있으며, Next.js 등의 프론트엔드 환경에서 Inference API를 통해 직접 호출할 수 있습니다.
+학습된 10단계의 AI 모델은 Hugging Face Hub에 통합되어 업로드되어 있습니다. `handler.py`(Custom Handler)를 통해 단일 엔드포인트에서 사용자가 원하는 AI 레벨을 동적으로 선택하여 호출할 수 있습니다.
 
 - **Repository**: [postelian/magic-eye-finder](https://huggingface.co/postelian/magic-eye-finder)
-- **Model Path**: `models/ai_lv{level}.pth` (level: 1~10)
+- **Endpoint**: `https://api-inference.huggingface.co/models/postelian/magic-eye-finder`
 
-### 1. API 호출 방식 (Next.js Example)
+### 1. API 호출 방식 (Frontend Example)
 
-Hugging Face Inference API를 사용하여 특정 레벨의 AI에게 매직아이 이미지를 판독하도록 요청하는 예제입니다.
+프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. `parameters` 객체에 `level` 값을 담아 전송합니다.
 
-```typescript
-// app/api/predict/route.ts (Next.js App Router)
-export async function POST(req: Request) {
-  const { imageUrl, level } = await req.json();
-  const HF_TOKEN = process.env.HF_TOKEN;
-  
-  // 모델 레벨에 따른 엔드포인트 설정 (lv1 ~ lv10)
-  // Note: .pth 파일은 Generic Inference 혹은 Custom Handler를 통해 호출됩니다.
+```javascript
+async function queryMagicEye(imageFile, aiLevel = 10) {
+  // 이미지를 바이너리 또는 base64로 변환하여 전송
   const response = await fetch(
-    `https://api-inference.huggingface.co/models/postelian/magic-eye-finder/models/ai_lv${level}.pth`,
+    "https://api-inference.huggingface.co/models/postelian/magic-eye-finder",
     {
-      headers: { Authorization: `Bearer ${HF_TOKEN}` },
+      headers: { 
+        Authorization: `Bearer ${HF_TOKEN}`,
+        "Content-Type": "application/json" 
+      },
       method: "POST",
-      body: await (await fetch(imageUrl)).blob(), // 이미지 바이너리 전달
+      body: JSON.stringify({
+        inputs: imageBinaryData, // 이미지 데이터
+        parameters: { level: aiLevel } // 1~10 사이의 정수 선택
+      }),
     }
   );
 
   const result = await response.json();
-  return Response.json(result);
+  return result; // [{ label: "apple", score: 0.98, level: 10 }]
 }
 ```
 
 ### 2. 응답 데이터 형태 (Response Format)
 
-Inference API 호출 시, 모델은 각 클래스별 신뢰도(Score)를 담은 배열을 반환합니다.
+커스텀 핸들러를 통해 분석 결과와 함께 요청한 AI 레벨 정보가 포함되어 반환됩니다.
 
 ```json
 [
-  { "label": "heart", "score": 0.9842 },
-  { "label": "star", "score": 0.0125 },
-  { "label": "butterfly", "score": 0.0021 },
-  ...
+  {
+    "label": "heart",
+    "score": 0.9842,
+    "level": 10
+  }
 ]
 ```
 
 - **label**: `src/consts/magic_eye_assets.py`에 정의된 30종의 사물 ID (예: `dinosaur`, `rocket`, `apple` 등)
-- **score**: 0~1 사이의 확률 값 (높을수록 해당 사물일 가능성이 높음)
+- **score**: 0~1 사이의 확률 값 (신뢰도)
+- **level**: 추론에 사용된 AI 플레이어의 난이도 레벨 (1~10)
 
-### 3. AI 성능 가이드
+### 3. AI 플레이어 난이도 가이드
 
-| 레벨 | 학습 데이터량 | 주요 특징 |
+사용자가 선택한 레벨에 따라 Hugging Face 서버 내부에서 해당 모델 가중치를 즉시 로드하여 처리합니다.
+
+| 레벨 | 학습 단계 | 내부 동작 및 특징 |
 |:---:|:---:|---|
-| **Lv 1-3** | 10~30% | "운에 맡기는 초보" - 형태를 거의 구분하지 못하고 랜덤에 가까운 예측을 합니다. |
-| **Lv 4-7** | 40~70% | "학습 중인 중급자" - 뚜렷한 외곽선은 파악하지만 복잡한 패턴에서 혼동을 겪습니다. |
-| **Lv 8-10** | 80~100% | "매직아이 마스터" - 고해상도 시차를 완벽히 분석하여 인간보다 빠르게 정답을 맞춥니다. |
+| **Lv 1-3** | 초기 학습 | `ai_lv1~3.pth` 로드: 노이즈와 형상을 거의 구분하지 못하는 초보 단계입니다. |
+| **Lv 4-7** | 중간 학습 | `ai_lv4~7.pth` 로드: 대략적인 외곽선은 파악하지만 복잡한 패턴에서 실수를 합니다. |
+| **Lv 8-10** | 최종 최적화 | `ai_lv8~10.pth` 로드: 고해상도 시차 분석을 통해 인간보다 정밀하게 정답을 맞춥니다. |
 
 ---
 
