@@ -59,30 +59,50 @@ AI Difficulty (10 Levels)
 - **Repository**: [postelian/magic-eye-finder](https://huggingface.co/postelian/magic-eye-finder)
 - **Endpoint**: `https://api-inference.huggingface.co/models/postelian/magic-eye-finder`
 
-### 1. API 호출 방식 (Frontend Example)
+### 1. API 호출 방식 (Next.js / TypeScript Example)
 
-프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. `parameters` 객체에 `level` 값을 담아 전송합니다.
+프론트엔드에서 특정 레벨(1~10)의 AI를 선택하여 이미지를 판독하는 예제입니다. 타입 안정성을 위해 `interface`를 정의하여 사용합니다.
 
-```javascript
-async function queryMagicEye(imageFile, aiLevel = 10) {
-  // 이미지를 바이너리 또는 base64로 변환하여 전송
+```typescript
+// types/magic-eye.ts
+export interface MagicEyeResponse {
+  label: string;
+  score: number;
+  level: number;
+}
+
+// services/magic-eye-api.ts
+export async function queryMagicEye(
+  imageFile: File | Blob, 
+  aiLevel: number = 10
+): Promise<MagicEyeResponse[]> {
+  const HF_TOKEN = process.env.NEXT_PUBLIC_HF_TOKEN;
+  const REPO_ID = "postelian/magic-eye-finder";
+
+  // 이미지를 ArrayBuffer로 변환
+  const arrayBuffer = await imageFile.arrayBuffer();
+
   const response = await fetch(
-    "https://api-inference.huggingface.co/models/postelian/magic-eye-finder",
+    `https://api-inference.huggingface.co/models/${REPO_ID}`,
     {
-      headers: { 
+      headers: {
         Authorization: `Bearer ${HF_TOKEN}`,
-        "Content-Type": "application/json" 
+        "Content-Type": "application/json",
       },
       method: "POST",
       body: JSON.stringify({
-        inputs: imageBinaryData, // 이미지 데이터
-        parameters: { level: aiLevel } // 1~10 사이의 정수 선택
+        inputs: Array.from(new Uint8Array(arrayBuffer)), // 이미지 데이터 전달
+        parameters: { level: aiLevel }, // 1~10 사이의 난이도 선택
       }),
     }
   );
 
-  const result = await response.json();
-  return result; // [{ label: "apple", score: 0.98, level: 10 }]
+  if (!response.ok) {
+    throw new Error("AI 분석 요청에 실패했습니다.");
+  }
+
+  const result: MagicEyeResponse[] = await response.json();
+  return result;
 }
 ```
 
