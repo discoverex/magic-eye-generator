@@ -20,7 +20,7 @@ class ImageUploader:
 
     def run(self):
         """
-        업로드 로직 통합 실행기
+        업로드 로직 통합 실행기 (테스트 이미지 + 메타데이터)
         """
         if not os.path.exists(self.metadata_path):
             print(f"❌ 에러: 메타데이터 파일이 없습니다. ({self.metadata_path})")
@@ -43,11 +43,33 @@ class ImageUploader:
         # 2. 업로드 대상 태스크 구성 (문제 이미지와 정답 이미지 모두 포함)
         upload_tasks = self._collect_tasks_from_df(test_df)
 
-        print(f"🚀 GCS 업로드 시작 (대상: TEST 데이터 {len(test_df)}세트, 총 {len(upload_tasks)}개 파일)")
-        print(f"📂 버킷 경로: gs://{self.bucket_name}/magic-eye/...")
+        # 3. 메타데이터 파일 추가 (GCS의 magic-eye/metadata.csv 경로로 업로드)
+        remote_metadata_path = "magic-eye/metadata.csv"
+        upload_tasks.append((self.metadata_path, remote_metadata_path))
 
-        # 3. 업로드 실행
+        print(f"🚀 GCS 업로드 시작 (대상: TEST 데이터 {len(test_df)}세트 + 메타데이터, 총 {len(upload_tasks)}개 파일)")
+        print(f"📂 버킷 경로: gs://{self.bucket_name}/magic-eye/...")
+        print("⚠️ 주의: 기존에 동일한 경로의 파일이 있다면 모두 덮어씌웁니다.")
+
+        # 4. 업로드 실행 (항상 덮어쓰기)
         self._execute_uploads(upload_tasks)
+
+    def run_metadata_only(self):
+        """
+        metadata.csv 파일만 선별하여 GCS로 업로드 (덮어쓰기)
+        """
+        if not os.path.exists(self.metadata_path):
+            print(f"❌ 에러: 메타데이터 파일이 없습니다. ({self.metadata_path})")
+            return
+
+        remote_metadata_path = "magic-eye/metadata.csv"
+        print(f"📝 메타데이터 단독 업로드 중 (덮어쓰기): {remote_metadata_path}")
+        
+        success = self.storage_service.upload_file(self.bucket_name, self.metadata_path, remote_metadata_path)
+        if success:
+            print(f"✅ 메타데이터 업로드 완료!")
+        else:
+            print(f"❌ 메타데이터 업로드 실패!")
 
     def _collect_tasks_from_df(self, df: pd.DataFrame) -> list:
         """
@@ -72,36 +94,35 @@ class ImageUploader:
 
     def _execute_uploads(self, tasks: list):
         """
-        수집된 업로드 태스크를 수행합니다.
+        수집된 업로드 태스크를 수행합니다. (항상 덮어쓰기)
         """
         count_uploaded = 0
-        count_skipped = 0
+        count_failed = 0
 
         # tqdm 진행바 설정
-        progress_bar = tqdm(tasks, desc="테스트 데이터 업로드 중", unit="파일", leave=True)
+        progress_bar = tqdm(tasks, desc="데이터 업로드 중", unit="파일", leave=True)
 
         for local_path, remote_path in progress_bar:
             # 현재 파일명을 진행바에 표시
             file_name = os.path.basename(local_path)
             progress_bar.set_postfix(file=file_name)
 
-            # 1. 원격지 존재 여부 확인
-            if self.storage_service.blob_exists(self.bucket_name, remote_path):
-                count_skipped += 1
-                continue
-
-            # 2. 업로드 수행 (내부 에러 발생 시 tqdm.write 사용)
+            # 업로드 수행 (GCPStorageService.upload_file은 기본적으로 덮어씌움)
             try:
                 if self.storage_service.upload_file(self.bucket_name, local_path, remote_path):
                     count_uploaded += 1
+                else:
+                    count_failed += 1
             except Exception as e:
+                count_failed += 1
                 progress_bar.write(f"❌ 업로드 중 예상치 못한 에러 ({file_name}): {e}")
 
         progress_bar.close()
 
-        print(f"\n✨ 테스트 데이터 업로드 완료!")
-        print(f"✅ 신규 업로드: {count_uploaded}개")
-        print(f"⏭️ 중복 건너뜀: {count_skipped}개")
+        print(f"\n✨ 업로드 완료!")
+        print(f"✅ 성공: {count_uploaded}개")
+        if count_failed > 0:
+            print(f"❌ 실패: {count_failed}개")
 
 
 if __name__ == "__main__":
