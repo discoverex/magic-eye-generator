@@ -47,11 +47,13 @@
     ├───engines/              # 핵심 실행 엔진
     │   ├───dataset_initializer.py # 데이터셋 폴더 초기화
     │   ├───dataset_generator.py   # 매직아이 대량 생성 (8:1:1 split 자동 할당)
+    │   ├───dataset_downloader.py  # GCS에서 데이터셋 다운로드
     │   ├───model_trainer.py       # GPU 최적화 기반 AI 모델 단계별 학습
-    │   ├───model_tester.py        # GPU 최적화 기반 최종 모델 성능 측정 및 시각화
+    │   ├───model_tester.py        # PyTorch/ONNX 모델 최종 성능 측정 및 시각화 (업데이트)
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
+    │   ├───model_downloader.py    # GCS에서 모델 다운로드
     │   ├───onnx_converter.py      # PyTorch 모델을 ONNX로 변환 및 GCS 업로드
-    │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
+    │   └───image_uploader.py      # GCS 업로드 (전체 데이터셋 대상)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
     ├───services/             # 외부 연동 서비스
     │   ├───gcp_storage_service.py # GCP Storage 연동

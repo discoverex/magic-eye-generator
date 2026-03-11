@@ -1,4 +1,5 @@
 import json
+import os
 from typing import Optional
 
 from google.cloud import storage
@@ -61,3 +62,34 @@ class GCPStorageService:
         except Exception as e:
             print(f"\n❌ 업로드 실패 ({remote_path}): {e}")
             return False
+
+    def download_file(self, bucket_name: str, remote_path: str, local_path: str) -> bool:
+        """
+        GCS에서 파일을 로컬로 다운로드합니다.
+        """
+        bucket = self.get_bucket(bucket_name)
+        if not bucket:
+            return False
+
+        try:
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+            blob = bucket.blob(remote_path)
+            blob.download_to_filename(local_path)
+            return True
+        except Exception as e:
+            print(f"\n❌ 다운로드 실패 ({remote_path}): {e}")
+            return False
+
+    def list_blobs(self, bucket_name: str, prefix: str = None):
+        """
+        GCS 버킷 내의 블롭 리스트를 가져옵니다.
+        """
+        bucket = self.get_bucket(bucket_name)
+        if not bucket:
+            return []
+        
+        try:
+            return list(self.client.list_blobs(bucket, prefix=prefix))
+        except Exception as e:
+            print(f"❌ 블롭 리스트 가져오기 실패: {e}")
+            return []

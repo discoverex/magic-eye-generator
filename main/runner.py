@@ -47,18 +47,20 @@ def start_app():
         print(" 4. AI 모델 최종 테스트 (model_tester.py)")
         print(" 5. GCP Storage에 데이터 업로드 (image_uploader.py)")
         print(" 6. AI 모델 Hugging Face 업로드 (model_uploader.py)")
+        print(" 7. GCP Storage에서 데이터셋 다운로드 (dataset_downloader.py)")
+        print(" 8. GCP Storage에서 AI 모델 다운로드 (model_downloader.py)")
         print("-" * 50)
         print(" [Utilities]")
-        print(" 7. 데이터셋 분배 현황 확인 (dataset_stats.py)")
-        print(" 8. 데이터셋 split 리밸런싱 (rebalance_dataset_split.py)")
+        print(" 9. 데이터셋 분배 현황 확인 (dataset_stats.py)")
+        print(" 10. 데이터셋 split 리밸런싱 (rebalance_dataset_split.py)")
         print("    💡 잘못된 split 비율을 8:1:1로 강제 재조정합니다.")
-        print(" 9. AI 모델 ONNX 변환 (onnx_converter.py)")
+        print(" 11. AI 모델 ONNX 변환 (onnx_converter.py)")
         print("    💡 PyTorch (.pth) 모델을 웹용 ONNX로 변환합니다.")
         print("-" * 50)
-        print(" 10. 종료 (Exit)")
+        print(" 12. 종료 (Exit)")
         print("-" * 50)
         
-        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~10): ").strip()
+        choice = input("👉 실행할 작업의 번호를 입력하세요 (1~12): ").strip()
 
         if choice == "1":
             print("\n🧹 데이터셋 초기화를 시작합니다...")
@@ -85,15 +87,21 @@ def start_app():
             print("\n🚀 Hugging Face 업로드를 시작합니다...")
             run_script("engines.model_uploader")
         elif choice == "7":
+            print("\n🚀 GCP Storage 데이터셋 다운로드를 시작합니다...")
+            run_script("engines.dataset_downloader")
+        elif choice == "8":
+            print("\n🚀 GCP Storage 모델 다운로드를 시작합니다...")
+            run_script("engines.model_downloader")
+        elif choice == "9":
             print("\n📊 데이터셋 통계 확인을 시작합니다...")
             run_script("utils.dataset_stats")
-        elif choice == "8":
+        elif choice == "10":
             print("\n🔄 데이터셋 리밸런싱을 시작합니다...")
             run_script("utils.rebalance_dataset_split")
-        elif choice == "9":
+        elif choice == "11":
             print("\n🔄 AI 모델 ONNX 변환을 시작합니다...")
             run_script("engines.onnx_converter")
-        elif choice in ["10", "exit", "quit"]:
+        elif choice in ["12", "exit", "quit"]:
             print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
             break
         elif choice == "":

@@ -20,7 +20,7 @@ class ImageUploader:
 
     def run(self):
         """
-        업로드 로직 통합 실행기 (테스트 이미지 + 메타데이터)
+        업로드 로직 통합 실행기 (전체 이미지 + 메타데이터)
         """
         if not os.path.exists(self.metadata_path):
             print(f"❌ 에러: 메타데이터 파일이 없습니다. ({self.metadata_path})")
@@ -28,26 +28,25 @@ class ImageUploader:
 
         print(f"🔍 메타데이터 분석 중: {self.metadata_path}")
         
-        # 1. 테스트 데이터 필터링
+        # 1. 전체 데이터 로드 (필터링 제거)
         try:
             df = pd.read_csv(self.metadata_path)
-            test_df = df[df['split'] == 'test']
         except Exception as e:
             print(f"❌ CSV 읽기 에러: {e}")
             return
 
-        if test_df.empty:
-            print("📁 업로드할 'test' split 데이터가 없습니다. 먼저 데이터셋을 생성해 주세요.")
+        if df.empty:
+            print("📁 업로드할 데이터가 없습니다. 먼저 데이터셋을 생성해 주세요.")
             return
 
         # 2. 업로드 대상 태스크 구성 (문제 이미지와 정답 이미지 모두 포함)
-        upload_tasks = self._collect_tasks_from_df(test_df)
+        upload_tasks = self._collect_tasks_from_df(df)
 
         # 3. 메타데이터 파일 추가 (GCS의 magic-eye/metadata.csv 경로로 업로드)
         remote_metadata_path = "magic-eye/metadata.csv"
         upload_tasks.append((self.metadata_path, remote_metadata_path))
 
-        print(f"🚀 GCS 업로드 시작 (대상: TEST 데이터 {len(test_df)}세트 + 메타데이터, 총 {len(upload_tasks)}개 파일)")
+        print(f"🚀 GCS 업로드 시작 (대상: 전체 데이터 {len(df)}세트 + 메타데이터, 총 {len(upload_tasks)}개 파일)")
         print(f"📂 버킷 경로: gs://{self.bucket_name}/magic-eye/...")
         print("⚠️ 주의: 기존에 동일한 경로의 파일이 있다면 모두 덮어씌웁니다.")
 

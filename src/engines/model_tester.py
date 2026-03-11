@@ -23,10 +23,17 @@ from src.dtos.magic_eye_dataset import MagicEyeDataset
 class ModelTester:
     """
     훈련된 AI 플레이어 모델의 최종 성능을 테스트(Test)하고 시각화하는 클래스.
-    GPU 병렬 처리 및 추론 최적화가 적용되었습니다.
+    GPU 병렬 처리 및 추론 최적화가 적용되었습니다. (PyTorch 및 ONNX 지원)
     """
-    def __init__(self):
-        self.model_dir = BASE_DIR / "models" / "players"
+    def __init__(self, model_type: str = "pth"):
+        self.model_type = model_type.lower()
+        if self.model_type == "onnx":
+            self.model_dir = BASE_DIR / "models" / "onnx"
+            import onnxruntime as ort
+            self.ort = ort
+        else:
+            self.model_dir = BASE_DIR / "models" / "players"
+            
         self.result_dir = BASE_DIR / "test_results"
         self.categories = [asset["id"] for asset in MAGIC_EYE_ASSETS]
         self.cat_to_idx = {cat: i for i, cat in enumerate(self.categories)}
@@ -67,12 +74,12 @@ class ModelTester:
             batch_size=batch_size, 
             shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True if self.device.type == 'cuda' else False,
+            pin_memory=True if self.device.type == 'cuda' and self.model_type == 'pth' else False,
             persistent_workers=True if self.num_workers > 0 else False
         )
 
-    def _load_model(self, level: int) -> nn.Module:
-        """모델 파일을 로드하고 평가 모드로 전환합니다."""
+    def _load_pth_model(self, level: int) -> nn.Module:
+        """PyTorch 모델 파일을 로드하고 평가 모드로 전환합니다."""
         model_path = self.model_dir / f"ai_lv{level}.pth"
         if not model_path.exists():
             raise FileNotFoundError(f"❌ 모델 파일을 찾을 수 없습니다: {model_path}")
@@ -94,21 +101,35 @@ class ModelTester:
             
         return model
 
+    def _load_onnx_session(self, level: int):
+        """ONNX 모델 파일을 로드하고 Inference Session을 생성합니다."""
+        model_path = self.model_dir / f"ai_lv{level}.onnx"
+        if not model_path.exists():
+            raise FileNotFoundError(f"❌ ONNX 모델 파일을 찾을 수 없습니다: {model_path}")
+
+        providers = ['CUDAExecutionProvider', 'CPUExecutionProvider'] if self.device.type == 'cuda' else ['CPUExecutionProvider']
+        session = self.ort.InferenceSession(str(model_path), providers=providers)
+        return session
+
     def test_level(self, level: int, test_loader: Optional[DataLoader] = None) -> Dict[str, Any]:
         """
-        특정 레벨 모델의 최종 테스트 정확도를 평가합니다. AMP 추론이 적용되었습니다.
-        전체 정확도뿐만 아니라 에셋별 상세 지표를 반환합니다.
+        특정 레벨 모델의 최종 테스트 정확도를 평가합니다.
         """
         print(f"\n{'-' * 50}")
-        print(f"🧪 AI Player Level {level} 최종 테스트 시작 (장치: {self.device})")
+        print(f"🧪 AI Player Level {level} ({self.model_type.upper()}) 최종 테스트 시작 (장치: {self.device})")
 
         try:
-            model = self._load_model(level)
+            if self.model_type == "pth":
+                model = self._load_pth_model(level)
+            else:
+                session = self._load_onnx_session(level)
+                input_name = session.get_inputs()[0].name
+
             if test_loader is None:
                 test_loader = self._prepare_test_loader()
         except Exception as e:
             print(f"⚠️ 테스트 중 오류 발생: {e}")
-            return {"accuracy": 0.0, "total": 0, "correct": 0}
+            return {"level": level, "accuracy": 0.0, "total_images": 0, "correct_images": 0, "per_asset_metrics": {}}
 
         correct = 0
         total = 0
@@ -117,24 +138,50 @@ class ModelTester:
         asset_correct = {cat: 0 for cat in self.categories}
         asset_total = {cat: 0 for cat in self.categories}
         
-        with torch.no_grad():
-            test_pbar = tqdm(test_loader, desc=f"  └ 레벨 {level} 성능 평가", unit="배치", leave=False)
+        if self.model_type == "pth":
+            with torch.no_grad():
+                test_pbar = tqdm(test_loader, desc=f"  └ 레벨 {level} pth 평가", unit="배치", leave=False)
+                for images, labels in test_pbar:
+                    images, labels = images.to(self.device, non_blocking=True), labels.to(self.device, non_blocking=True)
+                    
+                    with torch.amp.autocast('cuda' if self.device.type == 'cuda' else 'cpu'):
+                        outputs = model(images)
+                    
+                    _, predicted = torch.max(outputs.data, 1)
+                    
+                    # 배치 내 결과 집계
+                    batch_correct = (predicted == labels)
+                    correct += batch_correct.sum().item()
+                    total += labels.size(0)
+                    
+                    # 에셋별 집계
+                    for i in range(labels.size(0)):
+                        label_idx = labels[i].item()
+                        asset_id = self.categories[label_idx]
+                        asset_total[asset_id] += 1
+                        if batch_correct[i]:
+                            asset_correct[asset_id] += 1
+        else:
+            # ONNX Inference
+            test_pbar = tqdm(test_loader, desc=f"  └ 레벨 {level} onnx 평가", unit="배치", leave=False)
             for images, labels in test_pbar:
-                images, labels = images.to(self.device, non_blocking=True), labels.to(self.device, non_blocking=True)
+                # ONNX Runtime은 numpy array를 입력으로 받음
+                images_np = images.numpy()
+                outputs = session.run(None, {input_name: images_np})
                 
-                with torch.amp.autocast('cuda' if self.device.type == 'cuda' else 'cpu'):
-                    outputs = model(images)
-                
-                _, predicted = torch.max(outputs.data, 1)
+                # outputs[0] is the logits
+                import numpy as np
+                predicted = np.argmax(outputs[0], axis=1)
+                labels_np = labels.numpy()
                 
                 # 배치 내 결과 집계
-                batch_correct = (predicted == labels)
-                correct += batch_correct.sum().item()
-                total += labels.size(0)
+                batch_correct = (predicted == labels_np)
+                correct += batch_correct.sum()
+                total += len(labels_np)
                 
                 # 에셋별 집계
-                for i in range(labels.size(0)):
-                    label_idx = labels[i].item()
+                for i in range(len(labels_np)):
+                    label_idx = labels_np[i]
                     asset_id = self.categories[label_idx]
                     asset_total[asset_id] += 1
                     if batch_correct[i]:
@@ -155,13 +202,13 @@ class ModelTester:
                 "accuracy": round(a_acc, 2)
             }
 
-        tqdm.write(f"✅ Level {level} Test Accuracy: {accuracy:.2f}% (Total: {total} images)")
+        tqdm.write(f"✅ Level {level} {self.model_type.upper()} Accuracy: {accuracy:.2f}% (Total: {total} images)")
         
         return {
             "level": level,
             "accuracy": round(accuracy, 2),
             "total_images": total,
-            "correct_images": correct,
+            "correct_images": int(correct),
             "per_asset_metrics": asset_metrics
         }
 
@@ -172,12 +219,14 @@ class ModelTester:
         log_data = {
             "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "device": str(self.device),
+            "model_type": self.model_type,
             "total_assets": len(self.categories),
             "levels_tested": len(results),
             "results": results
         }
         
-        save_path = self.result_dir / "test_logs.json"
+        filename = f"test_logs_{self.model_type}.json"
+        save_path = self.result_dir / filename
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(log_data, f, indent=4, ensure_ascii=False)
             
@@ -195,10 +244,10 @@ class ModelTester:
         accuracies = [r['accuracy'] for r in results]
 
         plt.figure(figsize=(12, 7))
-        plt.bar(levels, accuracies, color='skyblue', alpha=0.8)
+        plt.bar(levels, accuracies, color='skyblue' if self.model_type == 'pth' else 'lightgreen', alpha=0.8)
         plt.plot(levels, accuracies, marker='D', linestyle='--', color='red', linewidth=1)
         
-        plt.title('Final AI Player Performance (Test Set)', fontsize=16, pad=20)
+        plt.title(f'Final AI Player Performance ({self.model_type.upper()} Test Set)', fontsize=16, pad=20)
         plt.xlabel('AI Level', fontsize=12)
         plt.ylabel('Test Accuracy (%)', fontsize=12)
         plt.xticks(levels)
@@ -208,7 +257,8 @@ class ModelTester:
         for i, acc in enumerate(accuracies):
             plt.text(levels[i], acc + 1, f'{acc:.1f}%', ha='center', fontsize=10, fontweight='bold')
 
-        save_path = self.result_dir / "test_accuracy_summary.png"
+        filename = f"test_accuracy_summary_{self.model_type}.png"
+        save_path = self.result_dir / filename
         plt.savefig(save_path)
         plt.close()
         
@@ -229,18 +279,19 @@ class ModelTester:
         모든 모델 레벨에 대해 최종 테스트를 수행하고 시각화 및 로그 저장을 수행합니다.
         """
         levels = []
+        ext = f".{self.model_type}"
         if self.model_dir.exists():
             for f in os.listdir(self.model_dir):
-                if f.startswith("ai_lv") and f.endswith(".pth"):
+                if f.startswith("ai_lv") and f.endswith(ext):
                     try:
-                        lv = int(f.replace("ai_lv", "").replace(".pth", ""))
+                        lv = int(f.replace("ai_lv", "").replace(ext, ""))
                         levels.append(lv)
                     except ValueError: continue
         
         levels.sort()
         
         if not levels:
-            print("📁 테스트할 모델 파일이 'models/players/'에 없습니다.")
+            print(f"📁 테스트할 {self.model_type.upper()} 모델 파일이 '{self.model_dir}'에 없습니다.")
             return
 
         try:
@@ -266,16 +317,19 @@ if __name__ == "__main__":
     try:
         multiprocessing.set_start_method('spawn', force=True)
     except RuntimeError: pass
-    
-    tester = ModelTester()
-    tester.run_full_test()
 
-
-if __name__ == "__main__":
-    import multiprocessing
-    try:
-        multiprocessing.set_start_method('spawn', force=True)
-    except RuntimeError: pass
+    print("\n" + "="*50)
+    print(" 🧪 AI 모델 성능 테스트 도구")
+    print("="*50)
+    print(" 1. PyTorch 모델 테스트 (.pth)")
+    print(" 2. ONNX 모델 테스트 (.onnx)")
+    print("-" * 50)
+    choice = input("👉 테스트할 모델 유형을 선택하세요 (1 또는 2): ").strip()
     
-    tester = ModelTester()
+    m_type = "pth" if choice == "1" else "onnx"
+    if choice not in ["1", "2"]:
+        print("⚠️ 기본값인 'pth'로 진행합니다.")
+        m_type = "pth"
+
+    tester = ModelTester(model_type=m_type)
     tester.run_full_test()

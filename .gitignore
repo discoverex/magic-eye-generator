@@ -12,6 +12,9 @@ models/
 # datasets
 datasets/
 
+# test results
+test_results/
+
 # environments
 .venv
 .env
