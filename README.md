@@ -149,7 +149,6 @@ function softmax(arr: Float32Array): number[] {
 │   uv.lock                   # uv 잠금 파일
 │
 ├───datasets/                 # 매직아이 데이터셋 저장 경로
-├───evaluate_results/         # 모델 검증 성능 시각화 결과 저장
 ├───test_results/             # 모델 최종 테스트 시각화 결과 저장
 ├───main/                     # 통합 실행기 로직
 │   ├───runner.py             # 메뉴 및 실행 제어 로직 (총 10개 옵션 제공)
