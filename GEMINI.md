@@ -72,28 +72,32 @@
 
 이 프로젝트는 `uv`를 사용하여 패키지를 관리합니다.
 
-1.  **가상 환경 생성 및 활성화**
+1.  **프로젝트 클론 및 의존성 동기화**
+    프로젝트를 처음 클론한 후, 다음 명령어를 통해 가상 환경 생성 및 모든 의존성을 한 번에 설치할 수 있습니다.
     ```bash
-    uv venv
-    .venv\Scripts\activate  # Windows
-    source .venv/bin/activate  # macOS/Linux
+    uv sync
     ```
 
-2.  **의존성 패키지 설치**
+2.  **가상 환경 활성화**
     ```bash
-    uv pip install -e ".[dev]"
+    .venv\Scripts\activate  # Windows
+    source .venv/bin/activate  # macOS/Linux
     ```
 
 ### 4.2. 실행
 
 이 서비스는 통합 실행기(`main.py`)를 통해 모든 주요 기능을 실행할 수 있습니다.
 
+#### 터미널(Terminal)에서 실행
 ```bash
-# 통합 메뉴 실행
 python main.py
 ```
 
-실행 후 콘솔의 안내에 따라 1~10번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
+#### IDE에서 실행 (VS Code / PyCharm)
+- **VS Code**: `main.py`를 열고 **Run Python File** (재생 아이콘) 또는 `F5` 키로 실행합니다.
+- **PyCharm**: `main.py` 우클릭 후 **Run 'main'**을 선택합니다.
+
+실행 후 콘솔의 안내에 따라 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
 
 ### 5. 개발 지침
 
