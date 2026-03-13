@@ -181,29 +181,41 @@ function softmax(arr: Float32Array): number[] {
 
 이 프로젝트는 `uv`를 사용하여 패키지를 관리합니다.
 
-1.  **가상 환경 생성 및 활성화**
+1.  **프로젝트 클론 및 의존성 동기화**
+    프로젝트를 처음 클론한 후, 다음 명령어를 통해 가상 환경 생성 및 모든 의존성을 한 번에 설치할 수 있습니다.
     ```bash
-    uv venv
+    uv sync
+    ```
+
+2.  **가상 환경 활성화**
+    ```bash
     .venv\Scripts\activate  # Windows
     source .venv/bin/activate  # macOS/Linux
     ```
 
-2.  **의존성 패키지 설치**
-    ```bash
-    uv pip install -e ".[dev]"
-    ```
-
 ### 실행
-├───services/             # 외부 서비스 연동
-└───utils/                # 보조 유틸리티
-    ├───dataset_stats.py       # 데이터셋 분배 현황 시각화
-    ├───rebalance_dataset_split.py # 데이터셋 split 리밸런싱
-    ├───test_report_generator.py # AI 테스트 분석 리포트 생성
-    └───stereogram.py          # 매직아이 생성 알고리즘
+
+이 서비스는 통합 실행기(`main.py`)를 통해 모든 주요 기능을 실행할 수 있습니다.
+
+#### 터미널(Terminal)에서 실행
+```bash
+python main.py
 ```
 
-## 설치 및 실행
-...
+#### IDE에서 실행
+
+**VS Code**
+1. `main.py` 파일을 엽니다.
+2. 오른쪽 상단의 **Run Python File** 버튼(재생 아이콘)을 클릭하거나 `F5` 키를 눌러 실행합니다.
+3. 하단 터미널(Terminal) 창에서 안내에 따라 번호를 입력하여 기능을 선택합니다.
+
+**PyCharm**
+1. `main.py` 파일에서 마우스 오른쪽 버튼을 클릭합니다.
+2. **Run 'main'** 메뉴를 선택합니다.
+3. 하단 **Run** 탭의 콘솔 창에서 안내에 따라 번호를 입력하여 기능을 선택합니다.
+
+---
+
 **제공 기능:**
 1. **데이터셋 초기화**: 기존 생성된 모든 데이터를 삭제합니다.
 2. **데이터셋 생성**: 에셋별 생성 개수를 지정하여 매직아이를 대량 생성합니다. (8:1:1 자동 분배)
