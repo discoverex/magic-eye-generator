@@ -52,6 +52,40 @@ AI Difficulty (10 Levels)
 - Performance Optimization: **AMP(혼합 정밀도)** 학습 및 **GPU 병렬 데이터 로딩**을 통해 훈련 및 테스트 속도를 대폭 향상.
 - Visualization: 데이터셋 분배 현황 및 모델 성능 추이를 그래프로 시각화하여 데이터 무결성 상시 점검.
 
+## 🦙 Local LLM for Prompt Generation (Ollama)
+
+본 프로젝트는 매직아이 생성을 위한 **Stable Diffusion** 프롬프트를 자동으로 생성하기 위해 로컬 LLM인 **Ollama**를 활용합니다. 
+
+### 1. 왜 로컬 LLM이 필요한가?
+- **프롬프트 다양성**: 단순한 키워드 반복이 아닌, LLM을 통해 사물의 배치, 각도, 질감을 묘사하는 풍부한 영문 프롬프트를 생성하여 학습 데이터의 품질을 높입니다.
+- **비용 및 프라이버시**: 외부 API(OpenAI 등)를 사용하지 않고 로컬 환경에서 무제한으로 프롬프트를 생성할 수 있습니다.
+
+### 2. 왜 `llama3.2` 모델인가? (Efficiency)
+- **자원 최적화**: 기존 `gpt-40-mini`는 단순 텍스트 작업에 과한 고수준 LLM 적용으로 인해 토큰과 리소스 낭비를 유발했습니다. 또한, 같은 ollama 계열 모델이더라도 일반적인 `llama3.1:8b` 모델은 약 4.7GB의 용량과 높은 VRAM을 요구하여 Stable Diffusion 학습/생성과 병행하기에 무거울 수 있습니다.
+- **성능 유지**: `llama3.2` (3B/1B) 모델은 훨씬 가벼우면서도 프롬프트 생성과 같은 단순 텍스트 작업에서 충분한 성능을 발휘합니다. 이를 통해 GPU 자원을 이미지 생성 엔진에 더 많이 할당할 수 있습니다.
+
+### 3. 설치 및 설정 가이드
+
+#### Ollama 설치
+[Ollama 공식 웹사이트](https://ollama.com/)에서 운영체제에 맞는 설치 파일을 내려받아 설치합니다.
+
+#### 모델 다운로드 (권장: llama3.2)
+터미널에서 아래 명령어를 실행하여 모델을 내려받습니다.
+```bash
+# 기본 3B 모델 (성능과 속도의 균형)
+ollama run llama3.2
+
+# 또는 초경량 1B 모델 (가장 빠른 속도)
+ollama run llama3.2:1b
+```
+
+#### 환경 변수 설정
+프로젝트 루트의 `.env` 파일에 사용 중인 모델 이름을 명시합니다.
+```env
+OLLAMA_MODEL=llama3.2
+OLLAMA_BASE_URL=http://localhost:11434
+```
+
 ## 🌐 AI Model (ONNX & GCP Storage)
 
 학습된 10단계의 AI 모델은 웹 환경(Next.js, Node.js)에서 직접 실행할 수 있도록 **ONNX** 형식으로 변환되어 **GCP Storage**에 호스팅됩니다. 별도의 파이썬 백엔드 없이 클라이언트 브라우저에서 `onnxruntime-web`을 통해 실시간 추론이 가능합니다.

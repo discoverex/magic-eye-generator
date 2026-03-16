@@ -1,16 +1,17 @@
-from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from typing import List
 
-from src.config.settings import OPENAI_API_KEY
+from src.config.settings import OLLAMA_MODEL, OLLAMA_BASE_URL
 
 
 class PromptAgent:
     def __init__(self):
-        self.llm = ChatOpenAI(
-            model="gpt-4o-mini",
-            api_key=OPENAI_API_KEY,
+        # Ollama 로컬 모델로 교체
+        self.llm = ChatOllama(
+            model=OLLAMA_MODEL,
+            base_url=OLLAMA_BASE_URL,
             temperature=1.2
         )
 
