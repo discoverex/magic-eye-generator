@@ -5,7 +5,7 @@ import torch.nn as nn
 from torchvision import models
 from tqdm import tqdm
 
-from src.config.settings import BASE_DIR, BUCKET_NAME
+from src.config.settings import BASE_DIR, MODEL_BUCKET_NAME
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.gcp_storage_service import GCPStorageService
 
@@ -15,7 +15,7 @@ class ONNXConverter:
     훈련된 PyTorch (.pth) 모델들을 ONNX 형식으로 변환하는 엔진 클래스.
     변환된 모델은 웹 브라우저(ONNX Runtime Web)나 Node.js에서 실행 가능합니다.
     """
-    def __init__(self, bucket_name: str = BUCKET_NAME):
+    def __init__(self, bucket_name: str = MODEL_BUCKET_NAME):
         self.model_dir = BASE_DIR / "models" / "players"
         self.onnx_dir = BASE_DIR / "models" / "onnx"
         self.bucket_name = bucket_name

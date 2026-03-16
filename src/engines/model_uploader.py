@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from tqdm import tqdm
 
-from src.config.settings import BASE_DIR, BUCKET_NAME
+from src.config.settings import BASE_DIR, MODEL_BUCKET_NAME
 from src.services.gcp_storage_service import GCPStorageService
 
 
@@ -10,7 +10,7 @@ class ModelUploader:
     """
     변환된 ONNX 모델들을 GCP Storage(GCS)의 'models/onnx/' 경로로 업로드하는 엔진 클래스.
     """
-    def __init__(self, bucket_name: str = BUCKET_NAME):
+    def __init__(self, bucket_name: str = MODEL_BUCKET_NAME):
         self.model_dir = BASE_DIR / "models" / "onnx"
         self.bucket_name = bucket_name
         self.storage_service = GCPStorageService()

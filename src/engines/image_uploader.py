@@ -3,7 +3,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 
-from src.config.settings import BUCKET_NAME, BASE_DIR
+from src.config.settings import IMAGE_BUCKET_NAME, BASE_DIR
 from src.services.gcp_storage_service import GCPStorageService
 
 
@@ -12,7 +12,7 @@ class ImageUploader:
     로컬의 매직아이 데이터셋 중 테스트용(split='test') 데이터만 선별하여 GCS로 업로드하는 클래스
     """
 
-    def __init__(self, bucket_name: str = BUCKET_NAME):
+    def __init__(self, bucket_name: str = IMAGE_BUCKET_NAME):
         self.bucket_name = bucket_name
         self.storage_service = GCPStorageService()
         self.dataset_dir = os.path.join(BASE_DIR, "datasets")

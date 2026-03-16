@@ -1,13 +1,13 @@
 import os
 from tqdm import tqdm
-from src.config.settings import BUCKET_NAME, BASE_DIR
+from src.config.settings import MODEL_BUCKET_NAME, BASE_DIR
 from src.services.gcp_storage_service import GCPStorageService
 
 class ModelDownloader:
     """
     GCS에 업로드되어 있는 훈련된 AI 모델들을 로컬로 내려받는 클래스
     """
-    def __init__(self, bucket_name: str = BUCKET_NAME):
+    def __init__(self, bucket_name: str = MODEL_BUCKET_NAME):
         self.bucket_name = bucket_name
         self.storage_service = GCPStorageService()
         self.model_dir = os.path.join(BASE_DIR, "models")
