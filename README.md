@@ -201,7 +201,7 @@ function softmax(arr: Float32Array): number[] {
     │   ├───model_tester.py        # PyTorch/ONNX 모델 성능 측정
     │   ├───model_downloader.py    # GCS에서 AI 모델 다운로드
     │   ├───onnx_converter.py      # 모델 ONNX 변환 및 GCS 업로드
-    │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
+    │   ├───model_uploader.py      # AI 모델 GCS 업로드 (ONNX 모델 대상)
     │   └───image_uploader.py      # GCS 업로드 (전체 데이터 업로드)
     ├───dtos/                 # 데이터 전송 객체
     ├───services/             # 외부 서비스 연동
@@ -255,12 +255,13 @@ python main.py
 3. **AI 모델 학습**: 10단계 AI 모델을 학습시킵니다.
 4. **AI 모델 최종 테스트**: 테스트 데이터를 통해 모델 성능을 측정합니다. (PyTorch/ONNX 선택 가능)
 5. **GCP 업로드**: 로컬 데이터셋 전체를 GCS에 백업 업로드합니다. (기존 파일 덮어쓰기/건너뛰기 선택 가능)
-6. **AI 모델 업로드**: AI 플레이어 모델을 Hugging Face에 업로드합니다.
+6. **AI 모델 업로드**: 학습된 ONNX 모델들을 GCS의 `models/onnx/` 경로로 업로드합니다. (덮어쓰기 선택 가능)
 7. **데이터셋 다운로드**: GCS에 백업된 데이터셋을 로컬로 내려받습니다.
 8. **모델 다운로드**: GCS에 저장된 훈련 모델(pth, onnx)을 로컬로 내려받습니다.
 9. **데이터셋 통계**: 데이터셋 분배 현황을 시각화합니다.
 10. **데이터셋 리밸런싱**: 데이터셋 분배 비율을 8:1:1로 교정합니다.
 11. **AI 모델 ONNX 변환**: PyTorch 모델을 웹용 ONNX로 변환하고 GCS에 업로드합니다.
-12. **AI 테스트 분석 리포트 생성**: 테스트 결과를 LLM으로 분석하여 상세 리포트를 작성합니다.
-13. **종료**: 프로그램을 종료합니다.
+12. **ONNX 모델 양자화**: models/onnx 내 미양자화 모델을 INT8로 압축하여 최적화합니다.
+13. **AI 테스트 분석 리포트 생성**: 테스트 결과를 LLM으로 분석하여 상세 리포트를 작성합니다.
+14. **종료**: 프로그램을 종료합니다.
 

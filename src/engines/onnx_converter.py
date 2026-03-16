@@ -45,6 +45,9 @@ class ONNXConverter:
         """
         모든 레벨(1~10)의 모델을 ONNX로 변환하며, 선택적으로 양자화를 수행합니다.
         """
+        from src.utils.onnx_quantizer import ONNXQuantizer
+        quantizer_tool = ONNXQuantizer()
+
         print(f"\n{'=' * 50}")
         print(f"🔄 PyTorch -> ONNX 모델 변환 시작 {'(양자화 포함)' if quantize else ''}")
         print(f"📁 소스: {self.model_dir}")
@@ -64,7 +67,7 @@ class ONNXConverter:
             
             print(f"📦 레벨 {level} 변환 중...")
             try:
-                # 1. 먼저 FP32 ONNX 모델로 내보내기
+                # 1. FP32 ONNX 모델로 내보내기
                 torch.onnx.export(
                     model,
                     dummy_input,
@@ -77,21 +80,13 @@ class ONNXConverter:
                     dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
                 )
 
-                # 2. 양자화 수행 (선택 사항)
+                # 2. 양자화 수행 (공통 유틸리티 사용)
                 if quantize:
-                    from onnxruntime.quantization import quantize_dynamic, QuantType
-                    
-                    quantize_dynamic(
-                        model_input=str(temp_onnx_path),
-                        model_output=str(onnx_path),
-                        weight_type=QuantType.QUInt8
-                    )
-                    
-                    # 임시 FP32 파일 삭제
-                    if os.path.exists(temp_onnx_path):
-                        os.remove(temp_onnx_path)
-                    
-                    print(f"   └ ✨ INT8 양자화 완료: {onnx_path.name}")
+                    if quantizer_tool.quantize_file(str(temp_onnx_path), str(onnx_path)):
+                        # 임시 FP32 파일 삭제
+                        if os.path.exists(temp_onnx_path):
+                            os.remove(temp_onnx_path)
+                        print(f"   └ ✨ INT8 양자화 완료: {onnx_path.name}")
                 
                 converted_files.append(onnx_path)
             except Exception as e:
