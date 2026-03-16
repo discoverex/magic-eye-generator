@@ -52,7 +52,7 @@
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
     │   ├───model_downloader.py    # GCS에서 모델 다운로드
     │   ├───onnx_converter.py      # PyTorch 모델을 ONNX로 변환 및 GCS 업로드
-    │   └───image_uploader.py      # GCS 업로드 (전체 데이터셋 대상)
+    │   └───image_uploader.py      # GCS 업로드 (전체 데이터셋 대상, 덮어쓰기 여부 선택 기능)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
     ├───services/             # 외부 연동 서비스
     │   ├───gcp_storage_service.py # GCP Storage 연동

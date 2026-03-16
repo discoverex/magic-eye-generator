@@ -18,7 +18,7 @@ class ImageUploader:
         self.dataset_dir = os.path.join(BASE_DIR, "datasets")
         self.metadata_path = os.path.join(self.dataset_dir, "metadata.csv")
 
-    def run(self):
+    def run(self, overwrite: bool = True):
         """
         업로드 로직 통합 실행기 (전체 이미지 + 메타데이터)
         """
@@ -48,21 +48,30 @@ class ImageUploader:
 
         print(f"🚀 GCS 업로드 시작 (대상: 전체 데이터 {len(df)}세트 + 메타데이터, 총 {len(upload_tasks)}개 파일)")
         print(f"📂 버킷 경로: gs://{self.bucket_name}/magic-eye/...")
-        print("⚠️ 주의: 기존에 동일한 경로의 파일이 있다면 모두 덮어씌웁니다.")
+        
+        if overwrite:
+            print("⚠️ 모드: 덮어쓰기 (기존 파일이 있으면 대체합니다.)")
+        else:
+            print("🛡️ 모드: 건너뛰기 (이미 존재하는 파일은 업로드하지 않습니다.)")
 
-        # 4. 업로드 실행 (항상 덮어쓰기)
-        self._execute_uploads(upload_tasks)
+        # 4. 업로드 실행
+        self._execute_uploads(upload_tasks, overwrite=overwrite)
 
-    def run_metadata_only(self):
+    def run_metadata_only(self, overwrite: bool = True):
         """
-        metadata.csv 파일만 선별하여 GCS로 업로드 (덮어쓰기)
+        metadata.csv 파일만 선별하여 GCS로 업로드
         """
         if not os.path.exists(self.metadata_path):
             print(f"❌ 에러: 메타데이터 파일이 없습니다. ({self.metadata_path})")
             return
 
         remote_metadata_path = "magic-eye/metadata.csv"
-        print(f"📝 메타데이터 단독 업로드 중 (덮어쓰기): {remote_metadata_path}")
+        
+        if not overwrite and self.storage_service.blob_exists(self.bucket_name, remote_metadata_path):
+            print(f"⏭️ 건너뜀: 메타데이터가 이미 존재합니다. ({remote_metadata_path})")
+            return
+
+        print(f"📝 메타데이터 단독 업로드 중: {remote_metadata_path}")
         
         success = self.storage_service.upload_file(self.bucket_name, self.metadata_path, remote_metadata_path)
         if success:
@@ -91,11 +100,12 @@ class ImageUploader:
         
         return tasks
 
-    def _execute_uploads(self, tasks: list):
+    def _execute_uploads(self, tasks: list, overwrite: bool = True):
         """
-        수집된 업로드 태스크를 수행합니다. (항상 덮어쓰기)
+        수집된 업로드 태스크를 수행합니다.
         """
         count_uploaded = 0
+        count_skipped = 0
         count_failed = 0
 
         # tqdm 진행바 설정
@@ -106,7 +116,13 @@ class ImageUploader:
             file_name = os.path.basename(local_path)
             progress_bar.set_postfix(file=file_name)
 
-            # 업로드 수행 (GCPStorageService.upload_file은 기본적으로 덮어씌움)
+            # 덮어쓰지 않을 경우 존재 여부 확인
+            if not overwrite:
+                if self.storage_service.blob_exists(self.bucket_name, remote_path):
+                    count_skipped += 1
+                    continue
+
+            # 업로드 수행
             try:
                 if self.storage_service.upload_file(self.bucket_name, local_path, remote_path):
                     count_uploaded += 1
@@ -118,12 +134,24 @@ class ImageUploader:
 
         progress_bar.close()
 
-        print(f"\n✨ 업로드 완료!")
-        print(f"✅ 성공: {count_uploaded}개")
+        print(f"\n✨ 업로드 프로세스 완료!")
+        print(f"✅ 신규 업로드: {count_uploaded}개")
+        if not overwrite:
+            print(f"⏭️ 건너뜀 (이미 존재): {count_skipped}개")
         if count_failed > 0:
             print(f"❌ 실패: {count_failed}개")
 
 
 if __name__ == "__main__":
+    import sys
+    
+    # 인자 처리: python -m src.engines.image_uploader [overwrite: True/False]
+    overwrite_arg = True
+    if len(sys.argv) > 1:
+        # "false" 또는 "0"인 경우 False로 설정
+        val = sys.argv[1].lower()
+        if val in ["false", "0", "no", "n"]:
+            overwrite_arg = False
+            
     uploader = ImageUploader()
-    uploader.run()
+    uploader.run(overwrite=overwrite_arg)

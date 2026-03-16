@@ -84,7 +84,13 @@ def start_app():
             run_script("engines.model_tester")
         elif choice == "5":
             print("\n🚀 GCP Storage 업로드를 시작합니다...")
-            run_script("engines.image_uploader")
+            print("💡 기존 파일을 덮어씌우시겠습니까? (y: 덮어쓰기 / n: 건너뛰기)")
+            ov_input = input("👉 입력 (기본값 y): ").strip().lower()
+            
+            if ov_input == "n":
+                run_script("engines.image_uploader", "false")
+            else:
+                run_script("engines.image_uploader", "true")
         elif choice == "6":
             print("\n🚀 Hugging Face 업로드를 시작합니다...")
             run_script("engines.model_uploader")
