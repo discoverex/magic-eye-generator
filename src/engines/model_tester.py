@@ -1,6 +1,5 @@
-import os
-import multiprocessing
 import json
+import os
 from datetime import datetime
 from typing import Dict, Optional, List, Any
 
@@ -34,13 +33,17 @@ class ModelTester:
         else:
             self.model_dir = BASE_DIR / "models" / "players"
             
-        self.result_dir = BASE_DIR / "test_results"
+        self.base_result_dir = BASE_DIR / "test_results"
+        self.timestamp = datetime.now().strftime("%y%m%d_%H%M%S")
+        self.run_dir = self.base_result_dir / self.timestamp
+        
         self.categories = [asset["id"] for asset in MAGIC_EYE_ASSETS]
         self.cat_to_idx = {cat: i for i, cat in enumerate(self.categories)}
         self.idx_to_display = {i: asset["display_name"] for i, asset in enumerate(MAGIC_EYE_ASSETS)}
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         
         # CPU 코어 수 기반 병렬 워커 수 설정
+        import multiprocessing
         self.num_workers = min(multiprocessing.cpu_count(), 8)
 
         # 테스트용 전처리
@@ -50,7 +53,40 @@ class ModelTester:
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-        os.makedirs(self.result_dir, exist_ok=True)
+        # 기존 결과 마이그레이션 및 새 폴더 생성
+        self._migrate_old_results()
+        os.makedirs(self.run_dir, exist_ok=True)
+
+    def _migrate_old_results(self):
+        """기존 test_results 루트에 있는 파일들을 생성 일시 기반 폴더로 이동시킵니다."""
+        if not self.base_result_dir.exists():
+            return
+
+        # 마이그레이션 기준 파일 확인
+        target_file = self.base_result_dir / "test_accuracy_summary.png"
+        # pth/onnx 구분이 포함된 파일명도 체크
+        if not target_file.exists():
+            summary_files = list(self.base_result_dir.glob("test_accuracy_summary_*.png"))
+            if summary_files:
+                target_file = summary_files[0]
+
+        if target_file.exists():
+            # 파일의 수정 시간을 기준으로 폴더 이름 생성 (생성 시간은 OS마다 다를 수 있어 mtime 사용)
+            mtime = os.path.getmtime(target_file)
+            dt = datetime.fromtimestamp(mtime)
+            migration_folder_name = dt.strftime("%y%m%d_%H%M%S")
+            migration_dir = self.base_result_dir / migration_folder_name
+            
+            # 마이그레이션 대상 파일들 (루트 직하의 파일들만)
+            files_to_move = [f for f in os.listdir(self.base_result_dir) 
+                             if os.path.isfile(self.base_result_dir / f)]
+            
+            if files_to_move:
+                os.makedirs(migration_dir, exist_ok=True)
+                print(f"📦 기존 테스트 결과를 마이그레이션합니다: -> {migration_folder_name}")
+                import shutil
+                for f_name in files_to_move:
+                    shutil.move(str(self.base_result_dir / f_name), str(migration_dir / f_name))
 
     def _prepare_test_loader(self, batch_size: int = 128) -> DataLoader:
         """
@@ -225,8 +261,8 @@ class ModelTester:
             "results": results
         }
         
-        filename = f"test_logs_{self.model_type}.json"
-        save_path = self.result_dir / filename
+        filename = f"test_logs_{self.model_type}_{self.timestamp}.json"
+        save_path = self.run_dir / filename
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(log_data, f, indent=4, ensure_ascii=False)
             
@@ -257,8 +293,8 @@ class ModelTester:
         for i, acc in enumerate(accuracies):
             plt.text(levels[i], acc + 1, f'{acc:.1f}%', ha='center', fontsize=10, fontweight='bold')
 
-        filename = f"test_accuracy_summary_{self.model_type}.png"
-        save_path = self.result_dir / filename
+        filename = f"test_accuracy_summary_{self.model_type}_{self.timestamp}.png"
+        save_path = self.run_dir / filename
         plt.savefig(save_path)
         plt.close()
         
