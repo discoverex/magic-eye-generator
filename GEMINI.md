@@ -33,7 +33,6 @@
 │   uv.lock                   # uv 잠금 파일
 │
 ├───datasets/                 # 매직아이 데이터셋 저장 경로
-├───evaluate_results/         # 모델 검증용 성능 시각화 리포트 (.png)
 ├───test_results/             # 모델 최종 테스트용 성능 시각화 리포트 (.png)
 ├───main/                     # 통합 실행기 로직
 │   ├───runner.py             # 메뉴 및 실행 제어 (총 10개 시나리오 지원)
@@ -47,11 +46,13 @@
     ├───engines/              # 핵심 실행 엔진
     │   ├───dataset_initializer.py # 데이터셋 폴더 초기화
     │   ├───dataset_generator.py   # 매직아이 대량 생성 (8:1:1 split 자동 할당)
+    │   ├───dataset_downloader.py  # GCS에서 데이터셋 다운로드
     │   ├───model_trainer.py       # GPU 최적화 기반 AI 모델 단계별 학습
-    │   ├───model_tester.py        # GPU 최적화 기반 최종 모델 성능 측정 및 시각화
+    │   ├───model_tester.py        # PyTorch/ONNX 모델 최종 성능 측정 및 시각화 (업데이트)
     │   ├───model_uploader.py      # AI 모델 Hugging Face 업로드
+    │   ├───model_downloader.py    # GCS에서 모델 다운로드
     │   ├───onnx_converter.py      # PyTorch 모델을 ONNX로 변환 및 GCS 업로드
-    │   └───image_uploader.py      # GCS 업로드 (Test 데이터 선별 업로드)
+    │   └───image_uploader.py      # GCS 업로드 (전체 데이터셋 대상)
     ├───dtos/                 # 데이터 전송 객체 (MagicEyeDataset 등)
     ├───services/             # 외부 연동 서비스
     │   ├───gcp_storage_service.py # GCP Storage 연동
@@ -60,6 +61,7 @@
     └───utils/                # 공통 유틸리티
         ├───dataset_stats.py       # 데이터셋 분배 통계 및 시각화
         ├───rebalance_dataset_split.py # 데이터셋 split 리밸런싱 (8:1:1)
+        ├───test_report_generator.py # AI 테스트 분석 리포트 생성
         ├───split_helper.py        # 공통 split 결정 로직
         └───stereogram.py          # 매직아이 생성 핵심 알고리즘
 ```
@@ -70,28 +72,32 @@
 
 이 프로젝트는 `uv`를 사용하여 패키지를 관리합니다.
 
-1.  **가상 환경 생성 및 활성화**
+1.  **프로젝트 클론 및 의존성 동기화**
+    프로젝트를 처음 클론한 후, 다음 명령어를 통해 가상 환경 생성 및 모든 의존성을 한 번에 설치할 수 있습니다.
     ```bash
-    uv venv
-    .venv\Scripts\activate  # Windows
-    source .venv/bin/activate  # macOS/Linux
+    uv sync
     ```
 
-2.  **의존성 패키지 설치**
+2.  **가상 환경 활성화**
     ```bash
-    uv pip install -e ".[dev]"
+    .venv\Scripts\activate  # Windows
+    source .venv/bin/activate  # macOS/Linux
     ```
 
 ### 4.2. 실행
 
 이 서비스는 통합 실행기(`main.py`)를 통해 모든 주요 기능을 실행할 수 있습니다.
 
+#### 터미널(Terminal)에서 실행
 ```bash
-# 통합 메뉴 실행
 python main.py
 ```
 
-실행 후 콘솔의 안내에 따라 1~10번 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
+#### IDE에서 실행 (VS Code / PyCharm)
+- **VS Code**: `main.py`를 열고 **Run Python File** (재생 아이콘) 또는 `F5` 키로 실행합니다.
+- **PyCharm**: `main.py` 우클릭 후 **Run 'main'**을 선택합니다.
+
+실행 후 콘솔의 안내에 따라 번호를 입력하여 데이터셋 관리, 모델 학습 및 평가, 유틸리티 실행 등을 수행할 수 있습니다.
 
 ### 5. 개발 지침
 
