@@ -53,9 +53,8 @@ class ModelTester:
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-        # 기존 결과 마이그레이션 및 새 폴더 생성
+        # 기존 결과 마이그레이션
         self._migrate_old_results()
-        os.makedirs(self.run_dir, exist_ok=True)
 
     def _migrate_old_results(self):
         """기존 test_results 루트에 있는 파일들을 생성 일시 기반 폴더로 이동시킵니다."""
@@ -154,6 +153,20 @@ class ModelTester:
         print(f"\n{'-' * 50}")
         print(f"🧪 AI Player Level {level} ({self.model_type.upper()}) 최종 테스트 시작 (장치: {self.device})")
 
+        # 모델 파일 정보 수집
+        ext = f".{self.model_type}"
+        model_path = self.model_dir / f"ai_lv{level}{ext}"
+        model_info = {"path": str(model_path), "exists": False}
+        
+        if model_path.exists():
+            stat = os.stat(model_path)
+            model_info.update({
+                "exists": True,
+                "filename": model_path.name,
+                "size_bytes": stat.st_size,
+                "last_modified": datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            })
+
         try:
             if self.model_type == "pth":
                 model = self._load_pth_model(level)
@@ -165,7 +178,14 @@ class ModelTester:
                 test_loader = self._prepare_test_loader()
         except Exception as e:
             print(f"⚠️ 테스트 중 오류 발생: {e}")
-            return {"level": level, "accuracy": 0.0, "total_images": 0, "correct_images": 0, "per_asset_metrics": {}}
+            return {
+                "level": level, 
+                "accuracy": 0.0, 
+                "total_images": 0, 
+                "correct_images": 0, 
+                "model_info": model_info,
+                "per_asset_metrics": {}
+            }
 
         correct = 0
         total = 0
@@ -245,6 +265,7 @@ class ModelTester:
             "accuracy": round(accuracy, 2),
             "total_images": total,
             "correct_images": int(correct),
+            "model_info": model_info,
             "per_asset_metrics": asset_metrics
         }
 
@@ -254,6 +275,7 @@ class ModelTester:
         """
         log_data = {
             "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp": self.timestamp,
             "device": str(self.device),
             "model_type": self.model_type,
             "total_assets": len(self.categories),
@@ -261,12 +283,32 @@ class ModelTester:
             "results": results
         }
         
+        # 실제 파일 저장 직전에 폴더 생성 (빈 폴더 생성 방지)
+        os.makedirs(self.run_dir, exist_ok=True)
+        
         filename = f"test_logs_{self.model_type}_{self.timestamp}.json"
         save_path = self.run_dir / filename
         with open(save_path, 'w', encoding='utf-8') as f:
             json.dump(log_data, f, indent=4, ensure_ascii=False)
             
         print(f"📄 테스트 로그 저장 완료: {save_path}")
+
+    def save_test_report_md(self, results: List[Dict[str, Any]]):
+        """
+        TestReportGenerator를 사용하여 상세 분석 보고서를 생성합니다.
+        """
+        from src.utils.test_report_generator import TestReportGenerator
+        
+        log_data = {
+            "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "timestamp": self.timestamp,
+            "device": str(self.device),
+            "model_type": self.model_type,
+            "results": results
+        }
+        
+        generator = TestReportGenerator(run_dir=self.run_dir)
+        generator.generate_from_data(log_data, self.timestamp)
 
     def visualize_test_results(self, results: List[Dict[str, Any]]):
         """
@@ -276,6 +318,9 @@ class ModelTester:
             print("📉 시각화할 데이터가 없습니다.")
             return
 
+        # 폴더 생성 확인
+        os.makedirs(self.run_dir, exist_ok=True)
+        
         levels = [r['level'] for r in results]
         accuracies = [r['accuracy'] for r in results]
 
@@ -343,6 +388,9 @@ class ModelTester:
 
         # JSON 로그 저장
         self.save_test_results_json(all_results)
+        
+        # Markdown 보고서 생성
+        self.save_test_report_md(all_results)
         
         # 시각화
         self.visualize_test_results(all_results)

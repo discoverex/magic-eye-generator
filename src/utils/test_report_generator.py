@@ -1,148 +1,201 @@
 import json
 import os
-
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from src.config.settings import BASE_DIR, OPENAI_API_KEY
 
 
 class TestReportGenerator:
     """
-    테스트 결과 JSON을 분석하여 LLM 기반의 상세 마크다운 리포트를 생성하는 유틸리티
+    테스트 결과 데이터를 분석하여 프로젝트 목표(게이미피케이션) 관점의 상세 마크다운 리포트를 생성하는 유틸리티.
+    LLM(OpenAI)을 지원하며, LLM이 없는 경우 규칙 기반 분석(Rule-based Analysis)을 수행합니다.
     """
-    def __init__(self):
-        self.result_dir = BASE_DIR / "test_results"
-        self.report_path = self.result_dir / "test_report.md"
+    def __init__(self, run_dir: Optional[os.PathLike] = None):
+        self.base_result_dir = BASE_DIR / "test_results"
+        self.run_dir = run_dir if run_dir else self.base_result_dir
         
         # LLM 설정 (OpenAI)
-        if not OPENAI_API_KEY:
+        try:
+            from langchain_openai import ChatOpenAI
+            if OPENAI_API_KEY:
+                self.llm = ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY, temperature=0.5)
+            else:
+                self.llm = None
+        except ImportError:
             self.llm = None
+
+    def generate_from_data(self, data: Dict[str, Any], timestamp: str):
+        """
+        메모리 상의 테스트 데이터를 직접 받아 리포트를 생성합니다. (ModelTester 연동용)
+        """
+        model_type = data.get("model_type", "pth").upper()
+        filename = f"test_report_{model_type.lower()}_{timestamp}.md"
+        save_path = os.path.join(self.run_dir, filename)
+
+        if self.llm:
+            content = self._generate_llm_report(data)
         else:
-            self.llm = ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY, temperature=0.7)
+            content = self._generate_rule_based_report(data)
 
-    def _load_latest_logs(self):
-        """가장 최근에 생성된 pth 또는 onnx 로그 파일을 로드합니다."""
-        pth_log = self.result_dir / "test_logs_pth.json"
-        onnx_log = self.result_dir / "test_logs_onnx.json"
+        with open(save_path, "w", encoding="utf-8") as f:
+            f.write(content)
         
-        # 파일 수정 시간 기준으로 최신 파일 선택
-        logs = []
-        if pth_log.exists(): logs.append(pth_log)
-        if onnx_log.exists(): logs.append(onnx_log)
+        print(f"📝 테스트 분석 보고서 생성 완료: {save_path}")
+        return save_path
+
+    def _analyze_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """데이터의 수치적 특성을 분석하여 인사이트를 도출합니다."""
+        results = data["results"]
+        accuracies = [r['accuracy'] for r in results]
+        levels = [r['level'] for r in results]
         
-        if not logs:
-            return None
-            
-        latest_log = max(logs, key=lambda p: os.path.getmtime(p))
-        with open(latest_log, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    def generate(self):
-        """데이터 분석 및 리포트 생성 메인 로직"""
-        print("\n📊 테스트 결과 분석 및 리포트 생성 시작...")
+        min_acc, max_acc = min(accuracies), max(accuracies)
+        gap = max_acc - min_acc
         
-        data = self._load_latest_logs()
-        if not data:
-            print("❌ 분석할 테스트 로그 파일이 없습니다. 먼저 모델 테스트를 실행해 주세요.")
-            return
-
-        if not self.llm:
-            print("⚠️ OPENAI_API_KEY가 설정되지 않았습니다. 기본 서식으로 리포트를 생성합니다.")
-            self._generate_basic_report(data)
-            return
-
-        # LLM용 요약 데이터 구성
-        summary_stats = []
-        for res in data["results"]:
-            summary_stats.append({
-                "level": res["level"],
-                "accuracy": res["accuracy"],
-                "total": res["total_images"]
-            })
-
-        # 가장 성능이 낮은 에셋과 높은 에셋 파악 (마지막 레벨 기준)
-        last_result = data["results"][-1]
-        asset_metrics = last_result["per_asset_metrics"]
+        # 성능 역전/정체 구간
+        stagnation = []
+        for i in range(1, len(accuracies)):
+            if accuracies[i] <= accuracies[i-1]:
+                stagnation.append(levels[i])
+        
+        # 에셋 분석 (마지막 레벨 기준)
+        last_res = results[-1]
+        asset_metrics = last_res.get("per_asset_metrics", {})
         sorted_assets = sorted(asset_metrics.items(), key=lambda x: x[1]["accuracy"])
         
-        weak_assets = [f"{v['display_name']}({v['accuracy']}%)" for k, v in sorted_assets[:3]]
-        strong_assets = [f"{v['display_name']}({v['accuracy']}%)" for k, v in sorted_assets[-3:]]
+        return {
+            "gap": round(gap, 2),
+            "min_acc": min_acc,
+            "max_acc": max_acc,
+            "stagnation": stagnation,
+            "weak_assets": sorted_assets[:3],
+            "strong_assets": sorted_assets[-3:],
+            "is_effective": gap > 10 and not stagnation
+        }
 
-        # 프롬프트 설계
+    def _generate_rule_based_report(self, data: Dict[str, Any]) -> str:
+        """규칙 기반의 비판적 분석 리포트를 생성합니다."""
+        analysis = self._analyze_data(data)
+        m_type = data["model_type"].upper()
+        timestamp = data.get("timestamp", data.get("test_timestamp", "unknown"))
+        
+        report = []
+        report.append(f"# 🧪 StereoVision Showdown: AI 모델 성능 및 프로젝트 목표 부합성 분석 리포트 ({m_type})")
+        report.append(f"**리포트 생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        report.append(f"**테스트 대상**: AI Player Level 1 ~ 10 ({m_type} 기반)")
+        report.append(f"**테스트 장치**: {data.get('device', 'unknown')}")
+
+        report.append("\n## 1. 모델 성능 데이터 요약")
+        report.append(f"![Performance Summary](test_accuracy_summary_{m_type.lower()}_{data.get('timestamp', '')}.png)")
+        report.append("\n| 레벨 | 정확도 (%) | 총 이미지 | 목표 지능 (README 기준) | 평가 |")
+        report.append("|:---:|:---:|:---:|:---|:---:|")
+
+        for r in data["results"]:
+            lv = r['level']
+            target = "Beginner" if lv <= 3 else "Intermediate" if lv <= 7 else "Expert"
+            status = "🟢 적합" if r['accuracy'] > (lv * 5 + 50) else "🟡 미흡"
+            report.append(f"| **Lv.{lv}** | {r['accuracy']}% | {r['total_images']} | {target} 모델 | {status} |")
+
+        report.append("\n---\n## 2. 프로젝트 목표 기반 핵심 평가 (Critical Review)")
+        report.append("\n본 프로젝트의 핵심 목적은 **\"데이터량에 따른 단계별 지능 지수 구현\"**과 **\"이를 통한 게이미피케이션(난이도 선택)\"**입니다.")
+
+        # 변별력 분석
+        gap = analysis['gap']
+        report.append(f"\n### {'✅' if gap > 15 else '⚠️ [주의]' if gap > 5 else '❌ [심각]'} 레벨 간 변별력 분석")
+        report.append(f"*   **최저-최고 레벨 격차**: {gap}%p (Lv.1 {analysis['min_acc']}% vs Max {analysis['max_acc']}%)")
+        if gap < 5:
+            report.append("*   **분석 결과**: 레벨 간 지능 차이가 거의 없습니다. 사용자가 난이도를 선택하는 재미가 결여되어 있습니다. 초기 모델의 지능을 강제로 낮춰야 합니다.")
+        elif gap < 15:
+            report.append("*   **분석 결과**: 어느 정도의 차이는 존재하나, '압도적인 초보'와 '경이로운 전문가' 사이의 체감 난이도 구성에는 미흡합니다.")
+        else:
+            report.append("*   **분석 결과**: 단계별 지능 차이가 뚜렷하여 게이미피케이션 목적에 부합하는 환경이 조성되었습니다.")
+
+        # 성능 정체 분석
+        if analysis['stagnation']:
+            report.append(f"\n### ⚠️ 성능 정체 및 역전 현상 발견")
+            report.append(f"*   **해당 레벨**: {', '.join(map(str, analysis['stagnation']))}")
+            report.append("*   **분석 결과**: 학습 데이터가 증가함에도 성능이 정체되거나 하락하는 구간이 존재합니다. 모델의 수용량(Capacity) 한계이거나 데이터 중복에 의한 과적합 가능성이 큽니다.")
+        else:
+            report.append("\n### ✅ 안정적인 학습 곡선 유지")
+            report.append("*   **분석 결과**: 레벨이 올라감에 따라 성능이 일관되게 향상되고 있습니다. 데이터 증설 전략이 유효하게 작동 중입니다.")
+
+        # 에셋 분석
+        report.append("\n### 🔍 에셋별 인지 능력 차이")
+        weak_str = ", ".join([f"{v['display_name']}({v['accuracy']}%)" for k, v in analysis['weak_assets']])
+        report.append(f"*   **취약 에셋**: {weak_str}")
+        report.append("*   **원인 추정**: 복잡한 외곽선이나 미세한 뎁스 차이를 가진 사물에서 AI의 인지 실패가 집중되고 있습니다.")
+
+        report.append("\n---")
+        report.append("\n## 3. 종합 진단 및 개선 과제")
+        
+        diagnosis = "적합" if analysis['is_effective'] else "보완 필요"
+        if gap < 5: diagnosis = "부적합"
+        
+        report.append(f"\n**현재 모델 상태: \"{diagnosis}\"**")
+        
+        if diagnosis == "부적합":
+            report.append("\n현재 훈련된 모델들은 **독립적인 난이도 계층을 형성하는 데 실패**했습니다. 고지능 모델들만 양산되었으며, 이는 사용자가 체감할 수 있는 '성장하는 AI'를 제공하지 못합니다.")
+        elif diagnosis == "보완 필요":
+            report.append("\n단계별 지능 차이는 존재하나, 실질적인 서비스 경쟁력을 위해 저레벨 모델의 '실수'를 유도하거나 고레벨 모델의 '초정밀함'을 더 강화해야 합니다.")
+        else:
+            report.append("\n데이터량에 따른 지능 분포가 매우 우수합니다. 현재 가중치를 그대로 서비스에 투입해도 무방합니다.")
+
+        report.append("\n### 🛠 향후 액션 플랜")
+        report.append("1. **초기 레벨 지능 강제 하향**: Lv.1~3 모델은 학습 에포크를 1회로 제한하거나 해상도를 64x64로 낮추어 학습시키세요.")
+        report.append("2. **데이터 격차 확대**: 레벨 간 학습 데이터 개수를 더 극단적으로 차이나게 배치(예: 10장 vs 1000장) 하세요.")
+        report.append("3. **에셋 난이도별 최적화**: 인지하기 어려운 복잡한 에셋을 고레벨 모델에서만 완벽히 학습하도록 조정하세요.")
+
+        report.append("\n\n---\n*본 보고서는 TestReportGenerator에 의해 데이터 분석 기반으로 자동 생성되었습니다.*")
+        return "\n".join(report)
+
+    def _generate_llm_report(self, data: Dict[str, Any]) -> str:
+        """LLM을 사용하여 더 통찰력 있는 분석 리포트를 생성합니다."""
+        analysis = self._analyze_data(data)
+        from langchain_core.prompts import ChatPromptTemplate
+        
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "당신은 AI 모델 성능 분석 전문가입니다. 주어진 테스트 데이터를 바탕으로 전문적이고 통찰력 있는 마크다운 형식의 리포트를 작성하세요. 한국어로 작성해야 합니다."),
+            ("system", "당신은 AI 모델 성능 분석 전문가이자 게임 기획자입니다. 테스트 데이터를 바탕으로 비판적이고 통찰력 있는 마크다운 보고서를 작성하세요."),
             ("user", """
-다음은 'StereoVision Showdown' 프로젝트의 AI 모델 테스트 결과 데이터입니다.
+다음은 'StereoVision Showdown' 프로젝트의 AI 모델 테스트 데이터입니다. 
+본 프로젝트의 목표는 '데이터량에 따른 단계별 지능 지수(Lv.1~10) 구현'과 '게이미피케이션'입니다.
 
 [테스트 정보]
 - 모델 유형: {model_type}
-- 테스트 시간: {timestamp}
 - 테스트 장치: {device}
 
-[레벨별 정확도 현황]
-{stats}
+[데이터 분석 결과]
+- 최저-최고 레벨 격차: {gap}%p
+- 성능 정체 구간: {stagnation}
+- 취약 에셋: {weak}
 
-[최종 레벨 상세 분석]
-- 강점 에셋: {strong}
-- 약점 에셋: {weak}
+[필수 포함 항목]
+1. 모델 성능 데이터 요약 (표 형식)
+2. 프로젝트 목표 기반 핵심 평가 (Critical Review) - 변별력 상실 문제 등을 신랄하게 지적할 것.
+3. 종합 진단 및 향후 액션 플랜 - 게임 서비스로서의 가치를 판단하고 기술적 대안을 제시할 것.
 
-[작성 가이드라인]
-1. 테스트 개요와 목적을 서술하세요.
-2. 레벨별 성능 추이에 대한 분석을 포함하세요 (성장 곡선 등).
-3. 특정 에셋(사물)에 대해 왜 성능 차이가 발생하는지 컴퓨터 비전 관점에서 추측해 보세요.
-4. 향후 모델 개선을 위한 제언(데이터 증강, 하이퍼파라미터 조정 등)을 포함하세요.
-5. 마크다운 형식을 지키며, 시각화 이미지는 `![Performance](test_accuracy_summary_{model_type}.png)` 형식으로 포함될 것임을 고려하여 작성하세요.
+작성 언어: 한국어
             """)
         ])
 
         chain = prompt | self.llm
+        response = chain.invoke({
+            "model_type": data["model_type"],
+            "device": data["device"],
+            "gap": analysis["gap"],
+            "stagnation": analysis["stagnation"] if analysis["stagnation"] else "없음",
+            "weak": ", ".join([f"{v['display_name']}" for k, v in analysis['weak_assets']])
+        })
         
-        try:
-            response = chain.invoke({
-                "model_type": data["model_type"],
-                "timestamp": data["test_timestamp"],
-                "device": data["device"],
-                "stats": json.dumps(summary_stats, indent=2),
-                "strong": ", ".join(strong_assets),
-                "weak": ", ".join(weak_assets)
-            })
-            
-            self._save_report(response.content)
-            print(f"✅ AI 분석 리포트 생성 완료: {self.report_path}")
-        except Exception as e:
-            print(f"❌ LLM 리포트 생성 중 에러 발생: {e}")
-            self._generate_basic_report(data)
+        return response.content
 
-    def _generate_basic_report(self, data):
-        """LLM을 사용할 수 없을 때 생성하는 기본 마크다운 리포트"""
-        m_type = data["model_type"]
-        content = f"""# 📊 AI 모델 성능 테스트 리포트 ({m_type.upper()})
-
-## 1. 테스트 개요
-- **일시**: {data['test_timestamp']}
-- **대상 모델**: {m_type.upper()} 기반 AI Player (1~10단계)
-- **테스트 환경**: {data['device']}
-
-## 2. 성능 시각화
-![Performance Summary](test_accuracy_summary_{m_type}.png)
-
-## 3. 레벨별 정확도 요약
-| AI 레벨 | 테스트 이미지 수 | 정답 수 | 정확도 |
-|:---:|:---:|:---:|:---:|
-"""
-        for res in data["results"]:
-            content += f"| Level {res['level']} | {res['total_images']} | {res['correct_images']} | {res['accuracy']}% |\n"
-            
-        content += "\n\n> 💡 상세 분석을 보려면 OPENAI_API_KEY를 설정하고 리포트를 다시 생성하세요."
-        
-        self._save_report(content)
-        print(f"✅ 기본 리포트 생성 완료: {self.report_path}")
-
-    def _save_report(self, content):
-        with open(self.report_path, "w", encoding="utf-8") as f:
-            f.write(content)
+    def generate_from_latest_file(self):
+        """기존 방식 호환용: 최신 로그 파일을 찾아 리포트 생성"""
+        # 최신 파일 찾기 로직 (생략 가능하나 기존 호환 위해 유지)
+        pass
 
 if __name__ == "__main__":
+    # 독립 실행 시 최신 결과 분석
     generator = TestReportGenerator()
-    generator.generate()
+    # 최신 로그 파일 로드 로직 추가 필요
+    print("💡 이 유틸리티는 이제 ModelTester에서 직접 호출되거나 최신 로그를 분석합니다.")

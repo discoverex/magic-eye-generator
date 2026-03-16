@@ -1,8 +1,8 @@
 import os
+
 import torch
 import torch.nn as nn
 from torchvision import models
-from pathlib import Path
 from tqdm import tqdm
 
 from src.config.settings import BASE_DIR, BUCKET_NAME
@@ -41,19 +41,17 @@ class ONNXConverter:
         model.eval()
         return model
 
-    def convert_all(self):
+    def convert_all(self, quantize: bool = True):
         """
-        모든 레벨(1~10)의 모델을 ONNX로 변환합니다.
+        모든 레벨(1~10)의 모델을 ONNX로 변환하며, 선택적으로 양자화를 수행합니다.
         """
         print(f"\n{'=' * 50}")
-        print(f"🔄 PyTorch -> ONNX 모델 변환 시작")
+        print(f"🔄 PyTorch -> ONNX 모델 변환 시작 {'(양자화 포함)' if quantize else ''}")
         print(f"📁 소스: {self.model_dir}")
         print(f"📁 대상: {self.onnx_dir}")
         print(f"{'=' * 50}")
 
         converted_files = []
-        
-        # 변환을 위한 더미 입력 (ResNet-18 표준 입력 크기: 1, 3, 224, 224)
         dummy_input = torch.randn(1, 3, 224, 224)
 
         for level in range(1, 11):
@@ -62,25 +60,44 @@ class ONNXConverter:
                 continue
 
             onnx_path = self.onnx_dir / f"ai_lv{level}.onnx"
+            temp_onnx_path = self.onnx_dir / f"ai_lv{level}_fp32.onnx"
             
             print(f"📦 레벨 {level} 변환 중...")
             try:
+                # 1. 먼저 FP32 ONNX 모델로 내보내기
                 torch.onnx.export(
                     model,
                     dummy_input,
-                    str(onnx_path),
+                    str(temp_onnx_path if quantize else onnx_path),
                     export_params=True,
-                    opset_version=12, # ONNX Runtime Web 호환성 고려
+                    opset_version=12,
                     do_constant_folding=True,
                     input_names=['input'],
                     output_names=['output'],
                     dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
                 )
+
+                # 2. 양자화 수행 (선택 사항)
+                if quantize:
+                    from onnxruntime.quantization import quantize_dynamic, QuantType
+                    
+                    quantize_dynamic(
+                        model_input=str(temp_onnx_path),
+                        model_output=str(onnx_path),
+                        weight_type=QuantType.QUInt8
+                    )
+                    
+                    # 임시 FP32 파일 삭제
+                    if os.path.exists(temp_onnx_path):
+                        os.remove(temp_onnx_path)
+                    
+                    print(f"   └ ✨ INT8 양자화 완료: {onnx_path.name}")
+                
                 converted_files.append(onnx_path)
             except Exception as e:
                 print(f"❌ 레벨 {level} 변환 실패: {e}")
 
-        print(f"\n✨ 총 {len(converted_files)}개의 모델이 ONNX로 변환되었습니다.")
+        print(f"\n✨ 총 {len(converted_files)}개의 모델이 최적화된 ONNX로 변환되었습니다.")
         return converted_files
 
     def upload_to_gcs(self, files):
