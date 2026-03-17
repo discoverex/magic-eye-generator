@@ -77,17 +77,19 @@ class TestReportGenerator:
     def _generate_rule_based_report(self, data: Dict[str, Any]) -> str:
         """규칙 기반의 비판적 분석 리포트를 생성합니다."""
         analysis = self._analyze_data(data)
-        m_type = data["model_type"].upper()
-        timestamp = data.get("timestamp", data.get("test_timestamp", "unknown"))
+        m_type = data["model_type"].lower()
+        timestamp = data.get("timestamp", "unknown")
         
         report = []
-        report.append(f"# 🧪 StereoVision Showdown: AI 모델 성능 및 프로젝트 목표 부합성 분석 리포트 ({m_type})")
+        report.append(f"# 🧪 StereoVision Showdown: AI 모델 성능 및 프로젝트 목표 부합성 분석 리포트 ({m_type.upper()})")
         report.append(f"**리포트 생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        report.append(f"**테스트 대상**: AI Player Level 1 ~ 10 ({m_type} 기반)")
+        report.append(f"**테스트 대상**: AI Player Level 1 ~ 10 ({m_type.upper()} 기반)")
         report.append(f"**테스트 장치**: {data.get('device', 'unknown')}")
 
         report.append("\n## 1. 모델 성능 데이터 요약")
-        report.append(f"![Performance Summary](test_accuracy_summary_{m_type.lower()}_{data.get('timestamp', '')}.png)")
+        # 이미지 파일명: test_accuracy_summary_{model_type}_{timestamp}.png
+        img_filename = f"test_accuracy_summary_{m_type}_{timestamp}.png"
+        report.append(f"![Performance Summary]({img_filename})")
         report.append("\n| 레벨 | 정확도 (%) | 총 이미지 | 목표 지능 (README 기준) | 평가 |")
         report.append("|:---:|:---:|:---:|:---|:---:|")
 
@@ -154,6 +156,10 @@ class TestReportGenerator:
         analysis = self._analyze_data(data)
         from langchain_core.prompts import ChatPromptTemplate
         
+        m_type = data["model_type"].lower()
+        timestamp = data.get("timestamp", "unknown")
+        img_filename = f"test_accuracy_summary_{m_type}_{timestamp}.png"
+
         prompt = ChatPromptTemplate.from_messages([
             ("system", "당신은 AI 모델 성능 분석 전문가이자 게임 기획자입니다. 테스트 데이터를 바탕으로 비판적이고 통찰력 있는 마크다운 보고서를 작성하세요."),
             ("user", """
@@ -187,7 +193,12 @@ class TestReportGenerator:
             "weak": ", ".join([f"{v['display_name']}" for k, v in analysis['weak_assets']])
         })
         
-        return response.content
+        # LLM 응답 본문 상단에 제목과 이미지를 추가하여 리포트 완성
+        header = f"# 🧪 StereoVision Showdown: AI 모델 성능 분석 리포트 ({data['model_type'].upper()})\n"
+        header += f"**리포트 생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        header += f"![Performance Summary]({img_filename})\n\n"
+        
+        return header + response.content
 
     def generate_from_latest_file(self):
         """기존 방식 호환용: 최신 로그 파일을 찾아 리포트 생성"""
