@@ -2,6 +2,7 @@ import os
 import shutil
 
 from src.config.settings import BASE_DIR
+from src.utils.path_utils import ensure_local_path
 
 
 class DatasetInitializer:
@@ -9,7 +10,7 @@ class DatasetInitializer:
     datasets 폴더 내의 모든 데이터(이미지 및 메타데이터)를 삭제하여 초기화하는 클래스
     """
     def __init__(self):
-        self.dataset_dir = os.path.join(BASE_DIR, "datasets")
+        self.dataset_dir = ensure_local_path(os.path.join(BASE_DIR, "datasets"))
 
     def run(self):
         """

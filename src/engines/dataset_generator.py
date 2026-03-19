@@ -14,6 +14,7 @@ from tqdm.asyncio import tqdm
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.services.magic_eye_service import MagicEyeService
+from src.utils.path_utils import to_cross_platform_path
 from src.utils.split_helper import get_split_from_index
 from src.utils.stereogram import create_stereogram
 
@@ -91,10 +92,11 @@ class DatasetGenerator:
                 async with self.file_lock:
                     with open(self.metadata_path, 'a', newline='', encoding='utf-8') as f:
                         writer = csv.writer(f)
+                        # OS 호환성을 위해 모든 경로는 '/' (Forward Slash)로 통일하여 저장
                         writer.writerow([
                             asset['id'], asset['display_name'], prompt,
-                            os.path.relpath(prob_path, self.dataset_base_dir),
-                            os.path.relpath(ans_path, self.dataset_base_dir),
+                            to_cross_platform_path(os.path.relpath(prob_path, self.dataset_base_dir)),
+                            to_cross_platform_path(os.path.relpath(ans_path, self.dataset_base_dir)),
                             split, datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         ])
                 pbar.update(1)

@@ -6,6 +6,8 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
+from src.utils.path_utils import ensure_local_path
+
 
 class MagicEyeDataset(Dataset):
     """
@@ -54,7 +56,9 @@ class MagicEyeDataset(Dataset):
         
         # 1. 이미지 로드 (문제 이미지)
         # metadata.csv의 problem_path는 datasets/ 기준 상대경로임
-        img_path = os.path.join(self.root_dir, "datasets", row['problem_path'])
+        # OS 호환성을 위해 경로 정규화 수행
+        normalized_rel_path = ensure_local_path(row['problem_path'])
+        img_path = os.path.join(self.root_dir, "datasets", normalized_rel_path)
         
         try:
             image = Image.open(img_path).convert("RGB")

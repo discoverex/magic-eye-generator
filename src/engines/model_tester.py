@@ -17,6 +17,7 @@ from tqdm import tqdm
 from src.config.settings import BASE_DIR
 from src.consts.magic_eye_assets import MAGIC_EYE_ASSETS
 from src.dtos.magic_eye_dataset import MagicEyeDataset
+from src.utils.spinner import Spinner
 
 
 class ModelTester:
@@ -273,23 +274,24 @@ class ModelTester:
         """
         테스트 로그 전체를 JSON 파일로 저장합니다.
         """
-        log_data = {
-            "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "timestamp": self.timestamp,
-            "device": str(self.device),
-            "model_type": self.model_type,
-            "total_assets": len(self.categories),
-            "levels_tested": len(results),
-            "results": results
-        }
-        
-        # 실제 파일 저장 직전에 폴더 생성 (빈 폴더 생성 방지)
-        os.makedirs(self.run_dir, exist_ok=True)
-        
-        filename = f"test_logs_{self.model_type}_{self.timestamp}.json"
-        save_path = self.run_dir / filename
-        with open(save_path, 'w', encoding='utf-8') as f:
-            json.dump(log_data, f, indent=4, ensure_ascii=False)
+        with Spinner("테스트 로그 JSON 저장 중..."):
+            log_data = {
+                "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp": self.timestamp,
+                "device": str(self.device),
+                "model_type": self.model_type,
+                "total_assets": len(self.categories),
+                "levels_tested": len(results),
+                "results": results
+            }
+            
+            # 실제 파일 저장 직전에 폴더 생성 (빈 폴더 생성 방지)
+            os.makedirs(self.run_dir, exist_ok=True)
+            
+            filename = f"test_logs_{self.model_type}_{self.timestamp}.json"
+            save_path = self.run_dir / filename
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(log_data, f, indent=4, ensure_ascii=False)
             
         print(f"📄 테스트 로그 저장 완료: {save_path}")
 
@@ -299,16 +301,17 @@ class ModelTester:
         """
         from src.utils.test_report_generator import TestReportGenerator
         
-        log_data = {
-            "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "timestamp": self.timestamp,
-            "device": str(self.device),
-            "model_type": self.model_type,
-            "results": results
-        }
-        
-        generator = TestReportGenerator(run_dir=self.run_dir)
-        generator.generate_from_data(log_data, self.timestamp)
+        with Spinner("AI 분석 리포트 생성 중 (LLM 분석 포함)..."):
+            log_data = {
+                "test_timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp": self.timestamp,
+                "device": str(self.device),
+                "model_type": self.model_type,
+                "results": results
+            }
+            
+            generator = TestReportGenerator(run_dir=self.run_dir)
+            generator.generate_from_data(log_data, self.timestamp)
 
     def visualize_test_results(self, results: List[Dict[str, Any]]):
         """

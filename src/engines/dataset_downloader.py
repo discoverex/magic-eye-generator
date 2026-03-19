@@ -2,6 +2,7 @@ import os
 from tqdm import tqdm
 from src.config.settings import IMAGE_BUCKET_NAME, BASE_DIR
 from src.services.gcp_storage_service import GCPStorageService
+from src.utils.path_utils import ensure_local_path
 
 class DatasetDownloader:
     """
@@ -39,8 +40,8 @@ class DatasetDownloader:
 
         for blob in progress_bar:
             remote_path = blob.name
-            # magic-eye/ -> datasets/ 로 매핑
-            relative_path = remote_path[len(self.remote_prefix):]
+            # magic-eye/ -> datasets/ 로 매핑 (OS 호환성 고려)
+            relative_path = ensure_local_path(remote_path[len(self.remote_prefix):])
             if not relative_path: # 폴더 자체인 경우 건너뜀
                 continue
                 

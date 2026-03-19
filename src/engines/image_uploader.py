@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from src.config.settings import IMAGE_BUCKET_NAME, BASE_DIR
 from src.services.gcp_storage_service import GCPStorageService
+from src.utils.path_utils import to_cross_platform_path, ensure_local_path
 
 
 class ImageUploader:
@@ -87,10 +88,11 @@ class ImageUploader:
         for _, row in df.iterrows():
             # 문제 이미지와 정답 이미지 경로 추출
             for col in ['problem_path', 'answer_path']:
-                rel_path = row[col].replace("\\", "/") # 윈도우 경로 호환성
-                local_path = os.path.join(self.dataset_dir, rel_path)
+                # CSV에 저장된 경로를 OS 호환 가능한 형식으로 정규화
+                rel_path = to_cross_platform_path(row[col])
+                local_path = os.path.join(self.dataset_dir, ensure_local_path(rel_path))
                 
-                # 버킷 내 경로 설정 (magic-eye 폴더 기준)
+                # 버킷 내 경로 설정 (magic-eye 폴더 기준, GCS는 항상 '/' 사용)
                 remote_path = f"magic-eye/{rel_path}"
                 
                 if os.path.exists(local_path):

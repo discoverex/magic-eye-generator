@@ -5,6 +5,7 @@ from collections import defaultdict
 
 from src.config.settings import BASE_DIR
 from src.utils.dataset_stats import print_and_visualize_stats, print_and_visualize_asset_stats
+from src.utils.path_utils import to_cross_platform_path
 from src.utils.split_helper import get_split_name
 
 
@@ -36,6 +37,13 @@ def rebalance_dataset_split(metadata_path: str, train_ratio=0.8, val_ratio=0.1):
         total = len(group)
         for i, row in enumerate(group):
             row['split'] = get_split_name(i, total, train_ratio, val_ratio)
+            
+            # 💡 경로 정규화 추가 (Windows 생성 데이터 호환성 보장)
+            if 'problem_path' in row:
+                row['problem_path'] = to_cross_platform_path(row['problem_path'])
+            if 'answer_path' in row:
+                row['answer_path'] = to_cross_platform_path(row['answer_path'])
+                
             final_rows.append(row)
 
     # 4. 결과 저장
