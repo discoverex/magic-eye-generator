@@ -1,0 +1,1960 @@
+{
+    "test_timestamp": "2026-03-22 10:36:20",
+    "timestamp": "260322_103332",
+    "device": "cpu",
+    "model_type": "onnx",
+    "total_assets": 30,
+    "levels_tested": 10,
+    "results": [
+        {
+            "level": 1,
+            "accuracy": 89.89,
+            "total_images": 940,
+            "correct_images": 845,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv1.onnx",
+                "exists": true,
+                "filename": "ai_lv1.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:54"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 28,
+                    "accuracy": 49.12
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 32,
+                    "accuracy": 56.14
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 40,
+                    "accuracy": 70.18
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 39,
+                    "accuracy": 68.42
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 31,
+                    "accuracy": 83.78
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 2,
+            "accuracy": 90.64,
+            "total_images": 940,
+            "correct_images": 852,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv2.onnx",
+                "exists": true,
+                "filename": "ai_lv2.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:56"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 30,
+                    "accuracy": 52.63
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 36,
+                    "accuracy": 63.16
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 40,
+                    "accuracy": 70.18
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 41,
+                    "accuracy": 71.93
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 3,
+            "accuracy": 90.85,
+            "total_images": 940,
+            "correct_images": 854,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv3.onnx",
+                "exists": true,
+                "filename": "ai_lv3.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:57"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 34,
+                    "accuracy": 59.65
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 29,
+                    "accuracy": 50.88
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 46,
+                    "accuracy": 80.7
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 40,
+                    "accuracy": 70.18
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 4,
+            "accuracy": 91.17,
+            "total_images": 940,
+            "correct_images": 857,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv4.onnx",
+                "exists": true,
+                "filename": "ai_lv4.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:58"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 30,
+                    "accuracy": 52.63
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 35,
+                    "accuracy": 61.4
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 44,
+                    "accuracy": 77.19
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 43,
+                    "accuracy": 75.44
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 5,
+            "accuracy": 90.43,
+            "total_images": 940,
+            "correct_images": 850,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv5.onnx",
+                "exists": true,
+                "filename": "ai_lv5.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:58"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 32,
+                    "accuracy": 56.14
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 36,
+                    "accuracy": 63.16
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 36,
+                    "accuracy": 63.16
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 41,
+                    "accuracy": 71.93
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 6,
+            "accuracy": 90.96,
+            "total_images": 940,
+            "correct_images": 855,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv6.onnx",
+                "exists": true,
+                "filename": "ai_lv6.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:59"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 32,
+                    "accuracy": 56.14
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 43,
+                    "accuracy": 75.44
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 40,
+                    "accuracy": 70.18
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 35,
+                    "accuracy": 61.4
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 7,
+            "accuracy": 91.91,
+            "total_images": 940,
+            "correct_images": 864,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv7.onnx",
+                "exists": true,
+                "filename": "ai_lv7.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:17:00"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 36,
+                    "accuracy": 63.16
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 34,
+                    "accuracy": 59.65
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 44,
+                    "accuracy": 77.19
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 45,
+                    "accuracy": 78.95
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 8,
+            "accuracy": 91.91,
+            "total_images": 940,
+            "correct_images": 864,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv8.onnx",
+                "exists": true,
+                "filename": "ai_lv8.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:17:01"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 40,
+                    "accuracy": 70.18
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 37,
+                    "accuracy": 64.91
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 42,
+                    "accuracy": 73.68
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 40,
+                    "accuracy": 70.18
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 9,
+            "accuracy": 91.49,
+            "total_images": 940,
+            "correct_images": 860,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv9.onnx",
+                "exists": true,
+                "filename": "ai_lv9.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:17:02"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 35,
+                    "accuracy": 61.4
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 32,
+                    "accuracy": 56.14
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 47,
+                    "accuracy": 82.46
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 41,
+                    "accuracy": 71.93
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        },
+        {
+            "level": 10,
+            "accuracy": 90.96,
+            "total_images": 940,
+            "correct_images": 855,
+            "model_info": {
+                "path": "C:\\Projects\\discoverex\\magic-eye-generator\\models\\onnx\\ai_lv10.onnx",
+                "exists": true,
+                "filename": "ai_lv10.onnx",
+                "size_bytes": 44758126,
+                "last_modified": "2026-03-11 20:16:55"
+            },
+            "per_asset_metrics": {
+                "dinosaur": {
+                    "display_name": "공룡",
+                    "total": 57,
+                    "correct": 38,
+                    "accuracy": 66.67
+                },
+                "elephant": {
+                    "display_name": "코끼리",
+                    "total": 57,
+                    "correct": 34,
+                    "accuracy": 59.65
+                },
+                "rocket": {
+                    "display_name": "로켓",
+                    "total": 57,
+                    "correct": 35,
+                    "accuracy": 61.4
+                },
+                "guitar": {
+                    "display_name": "기타",
+                    "total": 57,
+                    "correct": 43,
+                    "accuracy": 75.44
+                },
+                "umbrella": {
+                    "display_name": "우산",
+                    "total": 37,
+                    "correct": 30,
+                    "accuracy": 81.08
+                },
+                "butterfly": {
+                    "display_name": "나비",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "bicycle": {
+                    "display_name": "자전거",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "heart": {
+                    "display_name": "하트",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "star": {
+                    "display_name": "별",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "tree": {
+                    "display_name": "나무",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "car": {
+                    "display_name": "자동차",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "house": {
+                    "display_name": "집",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "apple": {
+                    "display_name": "사과",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "book": {
+                    "display_name": "책",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "chair": {
+                    "display_name": "의자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cup": {
+                    "display_name": "컵",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "diamond": {
+                    "display_name": "다이아몬드",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "fish": {
+                    "display_name": "물고기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "flower": {
+                    "display_name": "꽃",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "hat": {
+                    "display_name": "모자",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "key": {
+                    "display_name": "열쇠",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "leaf": {
+                    "display_name": "나뭇잎",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "moon": {
+                    "display_name": "달",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "mountain": {
+                    "display_name": "산",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "pencil": {
+                    "display_name": "연필",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "phone": {
+                    "display_name": "전화기",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "ship": {
+                    "display_name": "배",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "sun": {
+                    "display_name": "해",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "watch": {
+                    "display_name": "시계",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                },
+                "cloud": {
+                    "display_name": "구름",
+                    "total": 27,
+                    "correct": 27,
+                    "accuracy": 100.0
+                }
+            }
+        }
+    ]
+}
