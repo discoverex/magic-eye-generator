@@ -66,67 +66,68 @@ def start_app():
         
         choice = input("👉 실행할 작업의 번호를 입력하세요 (1~14): ").strip()
 
-        if choice == "1":
-            print("\n🧹 데이터셋 초기화를 시작합니다...")
-            run_script("engines.dataset_initializer")
-        elif choice == "2":
-            print("\n🚀 데이터셋 생성을 시작합니다...")
-            print("💡 에셋당 생성할 이미지 개수를 입력하세요. (기본값: 300)")
-            count_input = input("👉 입력 (엔터 시 300): ").strip()
-            
-            if count_input == "":
-                run_script("engines.dataset_generator")
-            else:
-                run_script("engines.dataset_generator", count_input)
-        elif choice == "3":
-            print("\n🚀 AI 모델 학습을 시작합니다...")
-            run_script("engines.model_trainer")
-        elif choice == "4":
-            print("\n🧪 AI 모델 최종 테스트를 시작합니다...")
-            run_script("engines.model_tester")
-        elif choice == "5":
-            print("\n🚀 GCP Storage 업로드를 시작합니다...")
-            print("💡 기존 파일을 덮어씌우시겠습니까? (y: 덮어쓰기 / n: 건너뛰기)")
-            ov_input = input("👉 입력 (기본값 y): ").strip().lower()
-            
-            if ov_input == "n":
-                run_script("engines.image_uploader", "false")
-            else:
-                run_script("engines.image_uploader", "true")
-        elif choice == "6":
-            print("\n🚀 AI 모델 GCS 업로드를 시작합니다...")
-            print("💡 기존 파일을 덮어씌우시겠습니까? (y: 덮어쓰기 / n: 건너뛰기)")
-            ov_input = input("👉 입력 (기본값 y): ").strip().lower()
-            
-            if ov_input == "n":
-                run_script("engines.model_uploader", "false")
-            else:
-                run_script("engines.model_uploader", "true")
-        elif choice == "7":
-            print("\n🚀 GCP Storage 데이터셋 다운로드를 시작합니다...")
-            run_script("engines.dataset_downloader")
-        elif choice == "8":
-            print("\n🚀 GCP Storage 모델 다운로드를 시작합니다...")
-            run_script("engines.model_downloader")
-        elif choice == "9":
-            print("\n📊 데이터셋 통계 확인을 시작합니다...")
-            run_script("utils.dataset_stats")
-        elif choice == "10":
-            print("\n🔄 데이터셋 리밸런싱을 시작합니다...")
-            run_script("utils.rebalance_dataset_split")
-        elif choice == "11":
-            print("\n🔄 AI 모델 ONNX 변환을 시작합니다...")
-            run_script("engines.onnx_converter")
-        elif choice == "12":
-            print("\n⚖️ ONNX 모델 양자화를 시작합니다...")
-            run_script("utils.onnx_quantizer")
-        elif choice == "13":
-            print("\n📝 AI 테스트 분석 리포트 생성을 시작합니다...")
-            run_script("utils.test_report_generator")
-        elif choice in ["14", "exit", "quit"]:
-            print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
-            break
-        elif choice == "":
-            continue
-        else:
-            print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~9번 중에서 선택해주세요.")
+        match choice:
+            case "1":
+                print("\n🧹 데이터셋 초기화를 시작합니다...")
+                run_script("engines.dataset_initializer")
+            case "2":
+                print("\n🚀 데이터셋 생성을 시작합니다...")
+                print("💡 에셋당 생성할 이미지 개수를 입력하세요. (기본값: 300)")
+                count_input = input("👉 입력 (엔터 시 300): ").strip()
+                
+                if count_input == "":
+                    run_script("engines.dataset_generator")
+                else:
+                    run_script("engines.dataset_generator", count_input)
+            case "3":
+                print("\n🚀 AI 모델 학습을 시작합니다...")
+                run_script("engines.model_trainer")
+            case "4":
+                print("\n🧪 AI 모델 최종 테스트를 시작합니다...")
+                run_script("engines.model_tester")
+            case "5":
+                print("\n🚀 GCP Storage 업로드를 시작합니다...")
+                print("💡 기존 파일을 덮어씌우시겠습니까? (y: 덮어쓰기 / n: 건너뛰기)")
+                ov_input = input("👉 입력 (기본값 y): ").strip().lower()
+                
+                if ov_input == "n":
+                    run_script("engines.image_uploader", "false")
+                else:
+                    run_script("engines.image_uploader", "true")
+            case "6":
+                print("\n🚀 AI 모델 GCS 업로드를 시작합니다...")
+                print("💡 기존 파일을 덮어씌우시겠습니까? (y: 덮어쓰기 / n: 건너뛰기)")
+                ov_input = input("👉 입력 (기본값 y): ").strip().lower()
+                
+                if ov_input == "n":
+                    run_script("engines.model_uploader", "false")
+                else:
+                    run_script("engines.model_uploader", "true")
+            case "7":
+                print("\n🚀 GCP Storage 데이터셋 다운로드를 시작합니다...")
+                run_script("engines.dataset_downloader")
+            case "8":
+                print("\n🚀 GCP Storage 모델 다운로드를 시작합니다...")
+                run_script("engines.model_downloader")
+            case "9":
+                print("\n📊 데이터셋 통계 확인을 시작합니다...")
+                run_script("utils.dataset_stats")
+            case "10":
+                print("\n🔄 데이터셋 리밸런싱을 시작합니다...")
+                run_script("utils.rebalance_dataset_split")
+            case "11":
+                print("\n🔄 AI 모델 ONNX 변환을 시작합니다...")
+                run_script("engines.onnx_converter")
+            case "12":
+                print("\n⚖️ ONNX 모델 양자화를 시작합니다...")
+                run_script("utils.onnx_quantizer")
+            case "13":
+                print("\n📝 AI 테스트 분석 리포트 생성을 시작합니다...")
+                run_script("utils.test_report_generator")
+            case "14" | "exit" | "quit":
+                print("\n👋 프로그램을 종료합니다. 즐거운 하루 되세요!")
+                break
+            case "":
+                continue
+            case _:
+                print(f"\n❗ '{choice}'은(는) 잘못된 입력입니다. 1~14번 중에서 선택해주세요.")
