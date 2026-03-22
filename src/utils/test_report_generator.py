@@ -14,6 +14,7 @@ class TestReportGenerator:
     def __init__(self, run_dir: Optional[os.PathLike] = None):
         self.base_result_dir = BASE_DIR / "test_results"
         self.run_dir = run_dir if run_dir else self.base_result_dir
+        self.prompt_dir = BASE_DIR / "src" / "prompts"
         
         # LLM 설정 (OpenAI)
         try:
@@ -74,23 +75,51 @@ class TestReportGenerator:
             "is_effective": gap > 10 and not stagnation
         }
 
+    def _load_prompt(self, filename: str) -> Dict[str, str]:
+        """외부 마크다운 파일에서 프롬프트 정보를 불러와 파싱합니다."""
+        prompt_path = self.prompt_dir / filename
+        if not prompt_path.exists():
+            raise FileNotFoundError(f"프롬프트 파일을 찾을 수 없습니다: {prompt_path}")
+        
+        with open(prompt_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        
+        # # System Message 및 # User Message 섹션 분리
+        system_msg = ""
+        user_msg = ""
+        
+        if "# System Message" in content and "# User Message" in content:
+            parts = content.split("# User Message")
+            system_msg = parts[0].replace("# System Message", "").strip()
+            user_msg = parts[1].strip()
+        else:
+            user_msg = content.strip()
+            
+        return {"system": system_msg, "user": user_msg}
+
+    def _get_report_header(self, model_type: str, timestamp: str, img_filename: str) -> str:
+        """리포트 공통 헤더를 생성합니다."""
+        header = [
+            f"# 🧪 StereoVision Showdown: AI 모델 성능 분석 리포트 ({model_type.upper()})",
+            f"**리포트 생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**테스트 대상**: AI Player Level 1 ~ 10 ({model_type.upper()} 기반)",
+            f"\n![Performance Summary]({img_filename})\n"
+        ]
+        return "\n".join(header)
+
     def _generate_rule_based_report(self, data: Dict[str, Any]) -> str:
         """규칙 기반의 비판적 분석 리포트를 생성합니다."""
         analysis = self._analyze_data(data)
         m_type = data["model_type"].lower()
         timestamp = data.get("timestamp", "unknown")
+        img_filename = f"test_accuracy_summary_{m_type}_{timestamp}.png"
         
-        report = []
-        report.append(f"# 🧪 StereoVision Showdown: AI 모델 성능 및 프로젝트 목표 부합성 분석 리포트 ({m_type.upper()})")
-        report.append(f"**리포트 생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        report.append(f"**테스트 대상**: AI Player Level 1 ~ 10 ({m_type.upper()} 기반)")
+        report = [self._get_report_header(m_type, timestamp, img_filename)]
         report.append(f"**테스트 장치**: {data.get('device', 'unknown')}")
 
+        # 1. 모델 성능 데이터 요약
         report.append("\n## 1. 모델 성능 데이터 요약")
-        # 이미지 파일명: test_accuracy_summary_{model_type}_{timestamp}.png
-        img_filename = f"test_accuracy_summary_{m_type}_{timestamp}.png"
-        report.append(f"![Performance Summary]({img_filename})")
-        report.append("\n| 레벨 | 정확도 (%) | 총 이미지 | 목표 지능 (README 기준) | 평가 |")
+        report.append("| 레벨 | 정확도 (%) | 총 이미지 | 목표 지능 (README 기준) | 평가 |")
         report.append("|:---:|:---:|:---:|:---|:---:|")
 
         for r in data["results"]:
@@ -99,6 +128,7 @@ class TestReportGenerator:
             status = "🟢 적합" if r['accuracy'] > (lv * 5 + 50) else "🟡 미흡"
             report.append(f"| **Lv.{lv}** | {r['accuracy']}% | {r['total_images']} | {target} 모델 | {status} |")
 
+        # 2. 핵심 평가
         report.append("\n---\n## 2. 프로젝트 목표 기반 핵심 평가 (Critical Review)")
         report.append("\n본 프로젝트의 핵심 목적은 **\"데이터량에 따른 단계별 지능 지수 구현\"**과 **\"이를 통한 게이미피케이션(난이도 선택)\"**입니다.")
 
@@ -106,6 +136,7 @@ class TestReportGenerator:
         gap = analysis['gap']
         report.append(f"\n### {'✅' if gap > 15 else '⚠️ [주의]' if gap > 5 else '❌ [심각]'} 레벨 간 변별력 분석")
         report.append(f"*   **최저-최고 레벨 격차**: {gap}%p (Lv.1 {analysis['min_acc']}% vs Max {analysis['max_acc']}%)")
+        
         if gap < 5:
             report.append("*   **분석 결과**: 레벨 간 지능 차이가 거의 없습니다. 사용자가 난이도를 선택하는 재미가 결여되어 있습니다. 초기 모델의 지능을 강제로 낮춰야 합니다.")
         elif gap < 15:
@@ -128,6 +159,7 @@ class TestReportGenerator:
         report.append(f"*   **취약 에셋**: {weak_str}")
         report.append("*   **원인 추정**: 복잡한 외곽선이나 미세한 뎁스 차이를 가진 사물에서 AI의 인지 실패가 집중되고 있습니다.")
 
+        # 3. 종합 진단
         report.append("\n---")
         report.append("\n## 3. 종합 진단 및 개선 과제")
         
@@ -160,28 +192,11 @@ class TestReportGenerator:
         timestamp = data.get("timestamp", "unknown")
         img_filename = f"test_accuracy_summary_{m_type}_{timestamp}.png"
 
+        prompt_data = self._load_prompt("test_report_llm_prompt.md")
+        
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "당신은 AI 모델 성능 분석 전문가이자 게임 기획자입니다. 테스트 데이터를 바탕으로 비판적이고 통찰력 있는 마크다운 보고서를 작성하세요."),
-            ("user", """
-다음은 'StereoVision Showdown' 프로젝트의 AI 모델 테스트 데이터입니다. 
-본 프로젝트의 목표는 '데이터량에 따른 단계별 지능 지수(Lv.1~10) 구현'과 '게이미피케이션'입니다.
-
-[테스트 정보]
-- 모델 유형: {model_type}
-- 테스트 장치: {device}
-
-[데이터 분석 결과]
-- 최저-최고 레벨 격차: {gap}%p
-- 성능 정체 구간: {stagnation}
-- 취약 에셋: {weak}
-
-[필수 포함 항목]
-1. 모델 성능 데이터 요약 (표 형식)
-2. 프로젝트 목표 기반 핵심 평가 (Critical Review) - 변별력 상실 문제 등을 신랄하게 지적할 것.
-3. 종합 진단 및 향후 액션 플랜 - 게임 서비스로서의 가치를 판단하고 기술적 대안을 제시할 것.
-
-작성 언어: 한국어
-            """)
+            ("system", prompt_data["system"]),
+            ("user", prompt_data["user"])
         ])
 
         chain = prompt | self.llm
@@ -193,11 +208,7 @@ class TestReportGenerator:
             "weak": ", ".join([f"{v['display_name']}" for k, v in analysis['weak_assets']])
         })
         
-        # LLM 응답 본문 상단에 제목과 이미지를 추가하여 리포트 완성
-        header = f"# 🧪 StereoVision Showdown: AI 모델 성능 분석 리포트 ({data['model_type'].upper()})\n"
-        header += f"**리포트 생성 일시**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
-        header += f"![Performance Summary]({img_filename})\n\n"
-        
+        header = self._get_report_header(data['model_type'], timestamp, img_filename)
         return header + response.content
 
     def generate_from_latest_file(self):
