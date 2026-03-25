@@ -36,7 +36,7 @@ AI Difficulty (10 Levels)
 ## 🛠️ Tech StackFrontend
 - React / Next.js (Tailwind CSS)
 - Backend: FastAPI (Model Serving)
-- AI/ML: PyTorch, OpenCV, Diffusers, Transformers
+- AI/ML: PyTorch, ONNX, OpenCV, Diffusers, Transformers
 - Dataset: 자체 제작한 SIRDS(Single Image Random Dot Stereograms) 데이터셋
 
 ---
